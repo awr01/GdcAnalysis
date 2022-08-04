@@ -1,5 +1,6 @@
 import argparse , tarfile , codecs , gzip
 from scipy.stats import ttest_ind
+from numpy import mean , var
 
 utf8reader = codecs.getreader( 'utf-8' )
 
@@ -21,8 +22,8 @@ GenesOfInterest = [ "ATRX" , "GAPDH" , "TUBA1A" , "ACTB" , "ALB" , "ALOX12" , "A
 
 
 
-ATRXmut , ATRXwt , ATRXother = [] , [] , [] # Initialize empty lists to store case-ids for the different mutation-classifications
-Genes = {}                                  # Initialize empty dictionary of gene-name to tpm-unstranded data per mutation-classification
+ATRXmut , ATRXwt = [] , []  # Initialize empty lists to store case-ids for the different mutation-classifications
+Genes = {}                  # Initialize empty dictionary of gene-name to tpm-unstranded data per mutation-classification
 
 print( f"Opening formatted tarball '{args.src}'" , flush=True )
 with tarfile.open( args.src ) as src , open( args.dest , "w" ) as dest , open( "raw-" + args.dest , "w" ) as dest2: # Open the formatted tarball file and the destination files
@@ -47,8 +48,7 @@ with tarfile.open( args.src ) as src , open( args.dest , "w" ) as dest , open( "
       
       Mutations = list( filter( lambda a: (a != "Silent") and (a!="Splice_Site") , Mutations ) ) # Remove all silent and splice-site from the mutation list
       if len( Mutations ) == 0:                             # If there are now no mutations (i.e. there were only silents or slices)
-        ATRXother.append( lCaseId )                         # add case-id to the "others" list
-        continue                                            # and go to the next file
+        continue                                            # go to the next file
 
       ATRXmut.append( lCaseId )                             # Else add case-id to the mutations list
   print( flush = True ) 
@@ -64,37 +64,39 @@ with tarfile.open( args.src ) as src , open( args.dest , "w" ) as dest , open( "
 
       if   lCaseId in ATRXmut:   Index = 0                  # Classify the case-id by its mutation-classification      
       elif lCaseId in ATRXwt:    Index = 1
-      elif lCaseId in ATRXother: Index = 2
       else: continue                                        # If there is no WXS data for this case-id, move to the next case
     
       for line in utf8reader( src.extractfile( lName ) ):   # Iterate over each line in the file
         line = [ i.strip() for i in line.split( "\t" , maxsplit = 7 ) ] # Split the line at tabs up to where we need it
         if not line[0].startswith( "ENSG" ): continue       # Ignore comments and headers
         lGeneName , lValue = line[1] , float( line[6] )     # Store the gene-name and TPM_unstranded data as variables
-        if not lGeneName in Genes: Genes[ lGeneName ] = [ [] , [] , [] ] # If we haven't seen this gene before, initialize new entry in the dictionary
+        if not lGeneName in Genes: Genes[ lGeneName ] = [ [] , [] ] # If we haven't seen this gene before, initialize new entry in the dictionary
         Genes[ lGeneName ][ Index ].append( lValue )        # Append the tpm-unstranded data to the list corresponding to this gene and this ATRX mutation-classification
   print( flush = True ) 
   # ----------------------------------------------------------------------------------------------------
 
   # ----------------------------------------------------------------------------------------------------
   print( "Analysing and outputting" , flush = True )  
-  dest.write( f"Gene\tFlagged\tCompare ATRXmut-ATRXwt\t\tATRXmut-ATRXother\t\tATRXwt-ATRXother\t\n" ) # Write headers
-  dest.write( f"\t\tt-score\tp-value\tt-score\tp-value\tt-score\tp-value\n" )
+  dest.write( f"Gene\tFlagged\tMut count\tMut mean\tMut var\tWT count\tWT mean\tWT var\t Mut mean/WT mean\tATRXmut:ATRXwt t-score\tATRXmut:ATRXwt p-value\n" ) # Write headers
   
-  for k,v in sorted( Genes.items() ):                       # For each gene
-  
-    flag = "*" if k in GenesOfInterest else ""
-  
+  for k,v in sorted( Genes.items() ):                       # For each gene 
+    num0 , mean0 , var0 = len( v[0] ) , mean( v[0] ) , var( v[0] )               # Calculate the mean and variance of the muts
+    num1 , mean1 , var1 = len( v[1] ) , mean( v[1] ) , var( v[1] )               # Calculate the mean and variance of the WTs
+    
+    if mean0 == 0 or mean1 == 0 : continue
+    
     t01, p01 = ttest_ind( v[0] , v[1] , equal_var = False ) # Calculate the t-score between each pair of lists
-    t02, p02 = ttest_ind( v[0] , v[2] , equal_var = False )
-    t12, p12 = ttest_ind( v[1] , v[2] , equal_var = False )
-    dest.write( f"{k}\t{flag}\t{t01}\t{p01}\t{t02}\t{p02}\t{t12}\t{p12}\n" ) # Write t-score and p-value data to file
+    meanratio = mean0 / mean1
+
+    flag = "*" if k in GenesOfInterest else ""
+      
+    
+    dest.write( f"{k}\t{flag}\t{num0}\t{mean0}\t{var0}\t{num1}\t{mean1}\t{var1}\t{meanratio}\t{t01}\t{p01}\n" ) # Write everything to file
 
     # Copy the raw-data to tab-delimeted strings
-    v0 , v1 , v2 = '\t'.join( [ str(i) for i in v[0] ] ) , '\t'.join( [ str(i) for i in v[1] ] ) , '\t'.join( [ str(i) for i in v[2] ] )    
+    v0 , v1 = '\t'.join( [ str(i) for i in v[0] ] ) , '\t'.join( [ str(i) for i in v[1] ] )
     dest2.write( f"{k}\t{flag}\tATRX mutation\t{v0}\n" )            # Write the raw data to "raw" file
     dest2.write( f"\t\tATRX wild-type\t{v1}\n" )
-    dest2.write( f"\t\tATRX others\t{v2}\n" )
   # ----------------------------------------------------------------------------------------------------
 
   # ----------------------------------------------------------------------------------------------------
