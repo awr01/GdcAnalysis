@@ -1,0 +1,5 @@
+*.tgz
+*.tsv
+*.pkl
+*.xlsx
+__pycache__
