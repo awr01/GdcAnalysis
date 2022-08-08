@@ -1,6 +1,11 @@
 import argparse , tarfile , codecs , gzip
 from scipy.stats import ttest_ind
-from numpy import mean , var
+from numpy import mean , var , warnings
+warnings.filterwarnings('ignore')
+
+
+from NlmDownload import GeneDetails
+
 
 utf8reader = codecs.getreader( 'utf-8' )
 
@@ -72,26 +77,45 @@ with tarfile.open( args.src ) as src , open( args.dest , "w" ) as dest , open( "
         lGeneName , lValue = line[1] , float( line[6] )     # Store the gene-name and TPM_unstranded data as variables
         if not lGeneName in Genes: Genes[ lGeneName ] = [ [] , [] ] # If we haven't seen this gene before, initialize new entry in the dictionary
         Genes[ lGeneName ][ Index ].append( lValue )        # Append the tpm-unstranded data to the list corresponding to this gene and this ATRX mutation-classification
+    
   print( flush = True ) 
   # ----------------------------------------------------------------------------------------------------
 
   # ----------------------------------------------------------------------------------------------------
-  print( "Analysing and outputting" , flush = True )  
-  dest.write( f"Gene\tFlagged\tMut count\tMut mean\tMut var\tWT count\tWT mean\tWT var\t Mut mean/WT mean\tATRXmut:ATRXwt t-score\tATRXmut:ATRXwt p-value\n" ) # Write headers
+  Details = GeneDetails( Genes.keys() )
+
+  print( "Analysing and outputting" , flush = True )
+ 
+  dest.write( f"Gene\tFlagged\tMut count\tMut mean\tMut var\tWT count\tWT mean\tWT var\t Mut mean/WT mean\tATRXmut:ATRXwt t-score\tATRXmut:ATRXwt p-value\tgene-type\tgene-description\tgene-synonyms\n" ) # Write headers
   
-  for k,v in sorted( Genes.items() ):                       # For each gene 
+  for k,v in sorted( Genes.items() ):                       # For each gene   
     num0 , mean0 , var0 = len( v[0] ) , mean( v[0] ) , var( v[0] )               # Calculate the mean and variance of the muts
     num1 , mean1 , var1 = len( v[1] ) , mean( v[1] ) , var( v[1] )               # Calculate the mean and variance of the WTs
     
     if mean0 == 0 or mean1 == 0 : continue
+
+    meanratio = mean0 / mean1
+    flag = "*" if k in GenesOfInterest else ""
+
+    dest.write( f"{k}\t{flag}\t" )
+    dest.write( f"{num0}\t{mean0}\t{var0}\t{num1}\t{mean1}\t{var1}\t{meanratio}\t" )
     
     t01, p01 = ttest_ind( v[0] , v[1] , equal_var = False ) # Calculate the t-score between each pair of lists
-    meanratio = mean0 / mean1
 
-    flag = "*" if k in GenesOfInterest else ""
-      
+    dest.write( f"{t01}\t{p01}\t" ) 
+
+    details = Details[ k ] 
     
-    dest.write( f"{k}\t{flag}\t{num0}\t{mean0}\t{var0}\t{num1}\t{mean1}\t{var1}\t{meanratio}\t{t01}\t{p01}\n" ) # Write everything to file
+    try: details_type = details['type']
+    except: details_type = "-" 
+
+    try: details_description = details['description']
+    except: details_description = "-" 
+
+    try: details_synonyms = details['synonyms']
+    except: details_synonyms = "-" 
+    
+    dest.write( f"{details_type}\t{details_description}\t{details_synonyms}\n" )
 
     # Copy the raw-data to tab-delimeted strings
     v0 , v1 = '\t'.join( [ str(i) for i in v[0] ] ) , '\t'.join( [ str(i) for i in v[1] ] )
