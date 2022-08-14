@@ -2,6 +2,9 @@ import argparse , requests, json, tarfile, io, codecs, gzip , tqdm , os , hashli
 
 utf8reader = codecs.getreader( 'utf-8' )
 
+GeneCatalogue = []
+
+
 # ======================================================================================================
 class tWildType:
   def __repr__( self ) : return "wild-type"
@@ -68,13 +71,24 @@ class WxsFile:
 # ======================================================================================================
 class RnaSeqFile:
   def __init__( self , lRnaSeqFile ): 
-    self.Genes = {}
+    self.Genes = [ None for i in range( len( GeneCatalogue ) ) ]
 
+    cnt = 0
     for line in utf8reader( lRnaSeqFile ):
       if not line.startswith( "ENSG" ): continue
       line = [ i.strip() for i in line.split( "\t" , maxsplit = 7 ) ]
       lGeneName , lGeneType , lValue = line[1] , line[2] , float( line[6] ) # Gene-name , Gene-type , TPM_unstranded
-      if lGeneType == "protein_coding" : self.Genes[ lGeneName ] = lValue
+      if lGeneType == "protein_coding" : 
+        try:
+          if GeneCatalogue[ cnt ] == lGeneName:
+            self.Genes[ cnt ] = lValue
+          else:
+            lGeneIndex = GeneCatalogue.index( lGeneName )
+            self.Genes[ lGeneIndex ] = lValue
+        except:
+          GeneCatalogue.append( lGeneName )
+          self.Genes.append( lValue )
+        cnt += 1
 # ======================================================================================================
 
 
@@ -98,6 +112,12 @@ class Case:
 # ======================================================================================================
 def SaveCases( aFilename , aCases ):
   with tarfile.open( aFilename , mode='w|gz' ) as dest:
+
+    lData = io.BytesIO( _pickle.dumps( GeneCatalogue ) )    
+    lInfo = tarfile.TarInfo( "GeneCatalogue" )
+    lInfo.size = lData.getbuffer().nbytes
+    dest.addfile( lInfo , lData )
+    
     for i,j in aCases.items():
       lData = io.BytesIO( _pickle.dumps( j ) )    
       lInfo = tarfile.TarInfo( i )
@@ -110,7 +130,8 @@ def LoadCases( aFilename ):
   print( "Loading cases" )
   lCases = {}
   with tarfile.open( aFilename , mode='r:gz' ) as src:
-    for lName in tqdm.tqdm( src.getmembers() , ncols=100 ):          
-      lCases[ lName.name ] = _pickle.loads( src.extractfile( lName ).read() )
+    for lName in tqdm.tqdm( src.getmembers() , ncols=100 ):
+      if lName.name == "GeneCatalogue" : GeneCatalogue        = _pickle.loads( src.extractfile( lName ).read() )
+      else:                              lCases[ lName.name ] = _pickle.loads( src.extractfile( lName ).read() )
   return lCases
 # ======================================================================================================

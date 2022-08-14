@@ -8,6 +8,8 @@ parser.add_argument( '--prefix' , required=True , help='The prefix that will be 
 args = parser.parse_args()
 
 
+if not os.path.isdir( ".cache" ): os.path.mkdir( ".cache" )
+
 # ======================================================================================================
 # Magic to simplify writing filters
 def And( *args ): return { "op":"and" , "content":[ i for i in args ] }
@@ -20,7 +22,7 @@ def In( key , value ):  return { "op":"in" , "content":{ "field" : key , "value"
 # ======================================================================================================
 def CachedGetJson( aParams ):
   lParams = hashlib.md5( str(aParams).encode('utf-8') ).hexdigest()
-  lFile = f".cache.{lParams}.pkl.bz"
+  lFile = f".cache/{lParams}.pkl.bz"
   
   if os.path.isfile( lFile ):
     print( "> Using cached query" , flush=True )
@@ -45,7 +47,7 @@ def GetJson( aFilter , aFields = [] ):
 # ======================================================================================================
 def GetTar( aKeys , aBatchsize ):
   lKeys = hashlib.md5( str( sorted( aKeys ) ).encode('utf-8') ).hexdigest()
-  lFile = f".cache.{lKeys}.tgz"
+  lFile = f".cache/{lKeys}.tgz"
 
   if os.path.isfile( lFile ): 
     print( "> Using cached tar" , flush=True )

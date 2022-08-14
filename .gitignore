@@ -1,4 +1,7 @@
+*.bz
+*.bz2
 *.tgz
+*.tar.gz
 *.tsv
 *.pkl
 *.xlsx
