@@ -45,103 +45,96 @@ def GetJson( aFilter , aFields = [] ):
 # ======================================================================================================
 
 # ======================================================================================================
-def GetTar( aKeys , aBatchsize ):
+def CachedGetTar( aKeys ):
   lKeys = hashlib.md5( str( sorted( aKeys ) ).encode('utf-8') ).hexdigest()
   lFile = f".cache/{lKeys}.tgz"
 
   if os.path.isfile( lFile ): 
-    print( "> Using cached tar" , flush=True )
-  else: 
-    print( "> Downloading tar" , flush=True )
-    with tarfile.open( lFile , mode='w|gz' ) as dest:
-      for i in tqdm.tqdm( range( 0 , len( aKeys ) , aBatchsize ) , ncols=100 ):
-        lSubsetKeys = aKeys[ i : min( i+aBatchsize , len( aKeys ) ) ]
-
-        lResponse = requests.post( "https://api.gdc.cancer.gov/data" , data = json.dumps( { "ids":lSubsetKeys } ) , headers = { "Content-Type" : "application/json" } )
-        if lResponse.status_code != 200: raise Exception( f"Requests returned status-code {lResponse.status_code}" )  
-       
-        with tarfile.open( fileobj = io.BytesIO( lResponse.content ) , mode='r' ) as src:
-          for lName in src.getmembers():  
-            if lName.name == "MANIFEST.txt" : continue           
-            lData = io.BytesIO( src.extractfile( lName ).read() )
-            lInfo = tarfile.TarInfo( lName.name )
-            lInfo.size = lData.getbuffer().nbytes
-            dest.addfile( lInfo , lData )
+    print( " Using cached!" , end = "" , flush=True )  
+  else:
+    print( " Downloading!" , end = "" , flush=True )
+    lResponse = requests.post( "https://api.gdc.cancer.gov/data" , data = json.dumps( { "ids":aKeys } ) , headers = { "Content-Type" : "application/json" } )
+    if lResponse.status_code != 200: raise Exception( f"Requests returned status-code {lResponse.status_code}" )  
+    with open( lFile , "wb" ) as dest: dest.write( lResponse.content )
           
   src = tarfile.open( lFile , mode='r:gz' )
   return src
 # ======================================================================================================
 
+# ======================================================================================================
+def AddWxsFileToCase( aCase , aFile ):
+  for line in utf8reader( gzip.GzipFile( fileobj = aFile ) ):                  # Iterate over each line in the file
+    if line[0] == "#" or line.startswith( "Hugo_Symbol" ) : continue           # Ignore comments and headers
+    line = [ i.strip() for i in line.split( "\t" , maxsplit = 37 ) ]           # Split the line at tabs up to where we need it      
+    if not line[0] in aCase.Mutations: aCase.Mutations[ line[0] ] = Mutation()
+    aCase.Mutations[ line[0] ].Raw.add( ( line[8] , line[36] ) )        
+# ======================================================================================================
 
-
-
-
-
-
+# ======================================================================================================
+def AddRnaSeqFileToCase( aCase , aFile ):
+  lStarCounts = StarCounts()
+  
+  for line in utf8reader( aFile ):
+    if not line.startswith( "ENSG" ): continue
+    line = [ i.strip() for i in line.split( "\t" , maxsplit = 7 ) ]
+    lGeneName , lGeneType , lValue = line[1] , line[2] , float( line[6] ) # Gene-name , Gene-type , TPM_unstranded
+    if True: #lGeneType == "protein_coding" : 
+      if not lGeneName in StarCounts.GeneCatalogue:
+        StarCounts.GeneCatalogue[ lGeneName ] = len( StarCounts.GeneCatalogue )
+        lStarCounts.Genes.append( lValue )
+      else:
+        lStarCounts.Genes[ StarCounts.GeneCatalogue[lGeneName] ] = lValue
+        
+  aCase.StarCounts.append( lStarCounts )
+# ======================================================================================================
 
 
 
 # ======================================================================================================
 print( "Creating Cases" , flush=True )
-lInfo    = [ "cases.case_id" ]
-lAuxInfo = [ "cases.case_id" , "cases.diagnoses.age_at_diagnosis" , "cases.project.disease_type" , "cases.project.primary_site" ]       
-lRnaSeq  = GetJson( And( Eq( "cases.project.project_id" , "TCGA-LGG" ), Eq( "files.experimental_strategy" , "RNA-Seq" ), Eq( "files.analysis.workflow_type" , "STAR - Counts"), Eq( "files.data_type" , "Gene Expression Quantification"), Eq( "files.access" , "open") ) , lInfo )        
-lWxs     = GetJson( And( Eq( "cases.project.project_id" , "TCGA-LGG" ), Eq( "files.experimental_strategy" , "WXS" ), Eq( "files.access" , "open") ) , lAuxInfo )
- 
+lInfo = [ "cases.case_id" , "cases.diagnoses.age_at_diagnosis" , "cases.project.disease_type" , "cases.project.primary_site" , "experimental_strategy" ]       
+lFileInfo = GetJson( Or( And( Eq( "cases.project.project_id" , "TCGA-LGG" ), Eq( "files.experimental_strategy" , "RNA-Seq" ), Eq( "files.analysis.workflow_type" , "STAR - Counts"), Eq( "files.data_type" , "Gene Expression Quantification"), Eq( "files.access" , "open") ) ,       
+                         And( Eq( "cases.project.project_id" , "TCGA-LGG" ), Eq( "files.experimental_strategy" , "WXS" ), Eq( "files.access" , "open") ) ) , lInfo )
+
 lCases = {}
-for i in lWxs:
-  CaseId = i["cases"][0]["case_id"]
-  if not CaseId in lCases : 
-    lCases[ CaseId ] = Case( CaseId , i )
-  else:                         
-    lCases[ CaseId ].WxsFileIds[ i["id"] ] = None
 
-for i in lRnaSeq:
-  CaseId = i["cases"][0]["case_id"]
-  if not CaseId in lCases : 
-    continue # We don't care about cases with no WXS
-  else:
-    lCases[ CaseId ].RnaSeqFileIds[ i["id"] ] = None
-  
-for i in list( lCases.keys() ):
-  if len( lCases[i].RnaSeqFileIds ) == 0 : del lCases[i] # If there is no RnaSeq - delete that too 
-# ======================================================================================================
+print( "Getting Data" , flush=True )
+length = len( lFileInfo )
+for i in tqdm.tqdm( range( 0 , length , 50 ) , ncols=100 ):  
+  lSlice = lFileInfo[ i : min( length , i + 50 ) ]
+  lFileIds = {}
 
-# ======================================================================================================
-print( "Getting WXS info" , flush=True )
-lWxsFileIds = {}
-for i,j in lCases.items(): 
-  for k in j.WxsFileIds: lWxsFileIds[ k ] = i
+  for j in lSlice:  
+    CaseId = j["cases"][0]["case_id"]
+    FileId = j["id"]
+    ExperimentalStrategy = j["experimental_strategy"]
+
+    lFileIds[ FileId ] = ( CaseId , ExperimentalStrategy )
     
-lWxsFiles = GetTar( list( lWxsFileIds.keys() ) , 100 )
-# ======================================================================================================
+    if not CaseId in lCases:
+      DiseaseType = j["cases"][0]["project"]["disease_type"] 
+      PrimarySite = j["cases"][0]["project"]["primary_site"]
+      try :    AgeAtDiagnosis = int( j["cases"][0]["diagnoses"]["age_at_diagnosis"] )
+      except : AgeAtDiagnosis = None   
+      
+      lCases[ CaseId ] = Case( CaseId , AgeAtDiagnosis , DiseaseType , PrimarySite )
 
-# ======================================================================================================
-print( "Extracting mutations" , flush=True )
-for lName in tqdm.tqdm( lWxsFiles.getmembers() , ncols=100 ):                                    # Iterate over the files in the tarball
-  lFileId , lFileName = lName.name.split( "/" , maxsplit=1 )
-  lCaseId = lWxsFileIds[ lFileId ]
-  lCases[ lCaseId ].WxsFileIds[ lFileId ] = WxsFile( lWxsFiles.extractfile( lName ) )
-# ======================================================================================================
-  
-# ======================================================================================================
-print( "Getting RnaSeq info" , flush=True )
-lRnaSeqFileIds = {}
-for i,j in lCases.items(): 
-  for k in j.RnaSeqFileIds: lRnaSeqFileIds[ k ] = i
+  lTar = CachedGetTar( list( lFileIds.keys() ) )
     
-lRnaSeqFiles = GetTar( list( lRnaSeqFileIds.keys() ) , 100 )
-# ======================================================================================================    
+  for lName in tqdm.tqdm( lTar.getmembers(), leave=False , ncols=100 ):                                    # Iterate over the files in the tarball
+    if lName.name == "MANIFEST.txt": continue
+    lFileId , _ = lName.name.split( "/" , maxsplit=1 )
+    lCaseId , lStrategy  = lFileIds[ lFileId ]
+    if lStrategy == "WXS" : AddWxsFileToCase(    lCases[ lCaseId ] , lTar.extractfile( lName ) )
+    else:                   AddRnaSeqFileToCase( lCases[ lCaseId ] , lTar.extractfile( lName ) )
 
-# ======================================================================================================
-print( "Extracting tpm-unstranded" , flush=True )
-for lName in tqdm.tqdm( lRnaSeqFiles.getmembers() , ncols=100 ):                                    # Iterate over the files in the tarball
-  lFileId , lFileName = lName.name.split( "/" , maxsplit=1 )
-  lCaseId = lRnaSeqFileIds[ lFileId ]
-  lCases[ lCaseId ].RnaSeqFileIds[ lFileId ] = RnaSeqFile( lRnaSeqFiles.extractfile( lName ) )
-# ======================================================================================================
+  lTar.close()
 
-
-# ======================================================================================================
+print( "\nClassifying mutations" , flush=True )
+for i,j in lCases.items():
+  for k,l in j.Mutations.items():
+    l.classify()
+    
+print( "Saving to disk" , flush=True )
 SaveCases( f"{args.prefix}.tgz" , lCases )
 # ======================================================================================================

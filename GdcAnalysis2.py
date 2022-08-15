@@ -12,6 +12,6 @@ lCases = LoadCases( f"{args.prefix}.tgz" )
   
   
 for i,j in lCases.items():
-  for k,l in j.RnaSeqFileIds.items():
-    print( i , len( l.Genes ) )
+  for k in j.StarCounts:
+    print( i , len( k.Genes ) )
 # ======================================================================================================
