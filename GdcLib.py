@@ -1,6 +1,6 @@
-import argparse , requests, json, tarfile, io, codecs, gzip , tqdm , os , hashlib , bz2 , _pickle
+import tarfile, tqdm , io , _pickle
 
-utf8reader = codecs.getreader( 'utf-8' )
+Ncol = 150
 
 # ======================================================================================================
 class tWildType:
@@ -92,7 +92,7 @@ def SaveCases( aFilename , aCases ):
     lInfo.size = lData.getbuffer().nbytes
     dest.addfile( lInfo , lData )
     
-    for i,j in aCases.items():
+    for i,j in tqdm.tqdm( aCases.items() , ncols=Ncol , desc="Saving to disk" ):
       lData = io.BytesIO( _pickle.dumps( j ) )    
       lInfo = tarfile.TarInfo( i )
       lInfo.size = lData.getbuffer().nbytes
@@ -101,11 +101,11 @@ def SaveCases( aFilename , aCases ):
 
 # ======================================================================================================
 def LoadCases( aFilename ):
-  print( "Loading cases" )
   lCases = {}
   with tarfile.open( aFilename , mode='r:gz' ) as src:
-    for lName in tqdm.tqdm( src.getmembers() , ncols=100 ):
+    for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Loading cases" ):
       if lName.name == "GeneCatalogue" : StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( lName ).read() )
       else:                              lCases[ lName.name ]     = _pickle.loads( src.extractfile( lName ).read() )
+      
   return lCases
 # ======================================================================================================

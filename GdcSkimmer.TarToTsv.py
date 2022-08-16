@@ -1,10 +1,12 @@
 import argparse
-from GdcLib2 import *
+from GdcLib import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument( '--src' , required=True , help='The source tarball')
 parser.add_argument( '--dest' , required=True , help='The destination file')
 args = parser.parse_args()
+if not args.src.endswith( ".tgz" ): raise Exception( "Source file must have '.tgz' file-extension" )
+if not args.dest.endswith( ".tsv" ): raise Exception( "Destination file must have '.tsv' file-extension" )
 
 # ==============================================================================================================================================
 # Extract the list of genes to a single tsv    
@@ -27,7 +29,7 @@ with open( args.dest , "w" ) as dest:                                           
   for i in Genes :     dest.write( "\tStarCount-" + i )
   dest.write( "\n" )
   
-  for lCaseId , lCase in lCases.items():                                           # Iterate over the cases storing the CaseId and Case in separate variables    
+  for lCaseId , lCase in tqdm.tqdm( lCases.items() , ncols=Ncol , desc="Saving" ): # Iterate over the cases storing the CaseId and Case in separate variables    
     for lStarCount in lCase.StarCounts:                                            # Then iterate over each star-count file
       dest.write( lCaseId )
       for i in Mutations: dest.write( "\t" + str( lCase.GetMutations( i , "" ) ) )         

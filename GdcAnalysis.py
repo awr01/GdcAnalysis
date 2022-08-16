@@ -1,5 +1,5 @@
 import argparse
-from GdcLib2 import *
+from GdcLib import *
 from scipy.stats import ttest_ind
 from numpy import mean , var , log10 , warnings
 warnings.filterwarnings('ignore')
@@ -12,6 +12,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument( '--src' , required=True , help='The source tarball')
 parser.add_argument( '--dest' , required=True , help='The destination file')
 args = parser.parse_args()
+if not args.src.endswith( ".tgz" ): raise Exception( "Source file must have '.tgz' file-extension" )
+if not args.dest.endswith( ".tsv" ): raise Exception( "Destination file must have '.tsv' file-extension" )
 
 
 GenesOfInterest = [ "ATRX" , "GAPDH" , "TUBA1A" , "ACTB" , "ALB" , "ALOX12" , "ANGPTL7" , "AOX1" , "APOE" , "ATOX1" , 
@@ -27,10 +29,8 @@ GenesOfInterest = [ "ATRX" , "GAPDH" , "TUBA1A" , "ACTB" , "ALB" , "ALOX12" , "A
 with open( args.dest , "w" ) as dest:                                              # Open the destination tsv and call the file-handle 'dest'
   lCases = LoadCases( args.src )                                                   # Load the formatted tarball as a dictionary of CaseId strings and Case objects
 
-  print( "\nAnalyzing" , flush=True )              
-
   Genes = [ ( [],[] ) for i in StarCounts.GeneCatalogue ]
-  for lCaseId , lCase in lCases.items():                                           # Iterate over the cases storing the CaseId and Case in separate variables        
+  for lCaseId , lCase in tqdm.tqdm( lCases.items() , ncols=Ncol , desc="Analyzing" ): # Iterate over the cases storing the CaseId and Case in separate variables        
     index = 1                                                                      # Indices chosen for consistency with old code
     if "ATRX" in lCase.Mutations: 
       lMut = lCase.Mutations[ "ATRX" ].Classification
@@ -40,11 +40,11 @@ with open( args.dest , "w" ) as dest:                                           
     for lStarCount in lCase.StarCounts:                                            # Then iterate over each star-count file
       for i , j in zip( lStarCount.Genes , Genes ):
         if not i is None: j[ index ].append( i ) 
-
-  print( "Saving" , flush=True )            
+         
+         
   dest.write( f"Gene\tFlagged\tMut-count\tMut-mean\tMut-var\tWT-count\tWT-mean\tWT-var\tMut mean/WT mean\tlog_1.5(ratio)\tt-score\tp-value\t'-log_10(p-value)\n" ) # Write headers
 
-  for k , v in zip( StarCounts.GeneCatalogue , Genes ):
+  for k , v in tqdm.tqdm( zip( StarCounts.GeneCatalogue , Genes ) , ncols=Ncol , total=len(Genes) , desc="Saving" ):
     num0 , mean0 , var0 = len( v[0] ) , mean( v[0] ) , var( v[0] )               # Calculate the mean and variance of the muts
     num1 , mean1 , var1 = len( v[1] ) , mean( v[1] ) , var( v[1] )               # Calculate the mean and variance of the WTs
     if mean0 == 0 or mean1 == 0 : continue

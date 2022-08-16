@@ -1,11 +1,14 @@
 import argparse , requests, json, tarfile, io, codecs, gzip , tqdm , os , hashlib , bz2 , _pickle
+from GdcLib import *
 
-from GdcLib2 import *
+utf8reader = codecs.getreader( 'utf-8' )
+
 
 # Read the commandline arguments
 parser = argparse.ArgumentParser()
-parser.add_argument( '--prefix' , required=True , help='The prefix that will be used for all files')
+parser.add_argument( '--dest' , required=True , help='The destination tgz file')
 args = parser.parse_args()
+if not args.dest.endswith( ".tgz" ): raise Exception( "Destination file must have '.tgz' file-extension" )
 
 
 if not os.path.isdir( ".cache" ): os.path.mkdir( ".cache" )
@@ -98,9 +101,8 @@ lFileInfo = GetJson( Or( And( Eq( "cases.project.project_id" , "TCGA-LGG" ), Eq(
 
 lCases = {}
 
-print( "Getting Data" , flush=True )
 length = len( lFileInfo )
-for i in tqdm.tqdm( range( 0 , length , 50 ) , ncols=100 ):  
+for i in tqdm.tqdm( range( 0 , length , 50 ) , ncols=Ncol , desc="Getting Data" ):  
   lSlice = lFileInfo[ i : min( length , i + 50 ) ]
   lFileIds = {}
 
@@ -121,7 +123,7 @@ for i in tqdm.tqdm( range( 0 , length , 50 ) , ncols=100 ):
 
   lTar = CachedGetTar( list( lFileIds.keys() ) )
     
-  for lName in tqdm.tqdm( lTar.getmembers(), leave=False , ncols=100 ):                                    # Iterate over the files in the tarball
+  for lName in tqdm.tqdm( lTar.getmembers(), leave=False , ncols=Ncol ):                                    # Iterate over the files in the tarball
     if lName.name == "MANIFEST.txt": continue
     lFileId , _ = lName.name.split( "/" , maxsplit=1 )
     lCaseId , lStrategy  = lFileIds[ lFileId ]
@@ -130,11 +132,9 @@ for i in tqdm.tqdm( range( 0 , length , 50 ) , ncols=100 ):
 
   lTar.close()
 
-print( "\nClassifying mutations" , flush=True )
-for i,j in lCases.items():
+for i,j in tqdm.tqdm( lCases.items() , ncols=Ncol , desc="Classifying mutations" ):
   for k,l in j.Mutations.items():
     l.classify()
     
-print( "Saving to disk" , flush=True )
-SaveCases( f"{args.prefix}.tgz" , lCases )
+SaveCases( args.dest , lCases )
 # ======================================================================================================
