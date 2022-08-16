@@ -4,12 +4,11 @@ Ncol = 150
 
 # ======================================================================================================
 class Meta(type):
-  def __repr__(cls):
-    return getattr( cls, 'class_str' )
+  def __repr__(cls): return getattr( cls, 'class_str' )
 
-class WildType(metaclass=Meta): class_str = "wild-type" 
+class WildType(metaclass=Meta):       class_str = "wild-type" 
 class SingleMutation(metaclass=Meta): class_str = "single-mutation"
-class MultiMutation(metaclass=Meta): class_str = "multi-mutation"
+class MultiMutation(metaclass=Meta):  class_str = "multi-mutation"
 class SilentOrSplice(metaclass=Meta): class_str = "silent-or-splice"
 # ======================================================================================================
 

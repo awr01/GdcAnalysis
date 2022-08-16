@@ -4,12 +4,10 @@ from scipy.stats import ttest_ind
 from numpy import mean , var , log10 , warnings
 warnings.filterwarnings('ignore')
 
-log_scale = 1.0 / log10( 1.5 ) 
-
 # ======================================================================================================
 def Init():
   global Genes
-  if Genes is None: Genes = [ ( [],[] ) for i in StarCounts.GeneCatalogue ]
+  Genes = [ ( [],[] ) for i in StarCounts.GeneCatalogue ]
   dest.write( f"Gene\tFlagged\tMut-count\tMut-mean\tMut-var\tWT-count\tWT-mean\tWT-var\tMut mean/WT mean\tlog_1.5(ratio)\tt-score\tp-value\t'-log_10(p-value)\n" ) # Write headers
 # ======================================================================================================
 
@@ -33,7 +31,7 @@ def Finally():
     if mean0 == 0 or mean1 == 0 : continue
 
     meanratio = mean0 / mean1
-    logmeanratio = log10( meanratio ) * log_scale
+    logmeanratio = log10( meanratio ) / log10( 1.5 ) 
     
     flag = "*" if k in args.genes else ""
     t01, p01 = ttest_ind( v[0] , v[1] , equal_var = False ) # Calculate the t-score between each pair of lists
@@ -42,10 +40,7 @@ def Finally():
 # ======================================================================================================
 
 # ======================================================================================================
-Genes = None    
-
 if len( args.mutations ) != 1 : raise Exception( "Exactly 1 mutation must be specified on the commandline" )
-MutationOfInterest = args.mutations[0]
-     
+MutationOfInterest , Genes = args.mutations[0] , None         
 with open( args.dest , "w" ) as dest: LoadAndForEach( args.src , Analyze , Init , Finally ) # Open the destination tsv and call the file-handle 'dest', then load src and analyze on-the-fly, making use of the optional Before and After functions 
 # ======================================================================================================
