@@ -3,22 +3,14 @@ import tarfile, tqdm , io , _pickle
 Ncol = 150
 
 # ======================================================================================================
-class tWildType:
-  def __repr__( self ) : return "wild-type"
-  
-class tSingleMutation:
-  def __repr__( self ) : return "single-mutation"
-  
-class tMultiMutation:
-  def __repr__( self ) : return "multi-mutation"
-  
-class tSilentOrSplice:
-  def __repr__( self ) : return "silent-or-splice"
+class Meta(type):
+  def __repr__(cls):
+    return getattr( cls, 'class_str' )
 
-WildType = tWildType()
-SingleMutation = tSingleMutation()
-MultiMutation = tMultiMutation()
-SilentOrSplice = tSilentOrSplice()
+class WildType(metaclass=Meta): class_str = "wild-type" 
+class SingleMutation(metaclass=Meta): class_str = "single-mutation"
+class MultiMutation(metaclass=Meta): class_str = "multi-mutation"
+class SilentOrSplice(metaclass=Meta): class_str = "silent-or-splice"
 # ======================================================================================================
 
 # ======================================================================================================
@@ -108,4 +100,19 @@ def LoadCases( aFilename ):
       else:                              lCases[ lName.name ]     = _pickle.loads( src.extractfile( lName ).read() )
       
   return lCases
+# ======================================================================================================
+
+
+# ======================================================================================================
+def LoadAndForEach( aFilename , aFn , Before = None , After = None ):
+  with tarfile.open( aFilename , mode='r:gz' ) as src:
+    StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "GeneCatalogue" ).read() )    
+    
+    if not Before is None:  Before()
+    
+    for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Load and analyze" ):
+      if lName.name != "GeneCatalogue" : aFn( _pickle.loads( src.extractfile( lName ).read() ) )      
+
+    if not After is None:  After()
+
 # ======================================================================================================

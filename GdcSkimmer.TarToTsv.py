@@ -1,16 +1,26 @@
 import argparse
 from GdcLib import *
 
-parser = argparse.ArgumentParser()
-parser.add_argument( '--src' , required=True , help='The source tarball')
-parser.add_argument( '--dest' , required=True , help='The destination file')
-args = parser.parse_args()
-if not args.src.endswith( ".tgz" ): raise Exception( "Source file must have '.tgz' file-extension" )
-if not args.dest.endswith( ".tsv" ): raise Exception( "Destination file must have '.tsv' file-extension" )
+# ======================================================================================================
+def Init():
+  dest.write( "CaseId" )                                                         # Write the header-line to the destination tsv
+  for i in Mutations : dest.write( "\tMutations-" + i )
+  for i in Genes :     dest.write( "\tStarCount-" + i )
+  dest.write( "\n" )
+# ======================================================================================================
 
-# ==============================================================================================================================================
-# Extract the list of genes to a single tsv    
+# ======================================================================================================
+def Analyze( aCase ):
+  for lStarCount in aCase.StarCounts:                                            # Then iterate over each star-count file
+    dest.write( aCase.CaseId )
+    for i in Mutations: dest.write( "\t" + str( aCase.GetMutations( i , "" ) ) )         
+    for i in Genes:     dest.write( "\t" + str( lStarCount[i] ) )
+    dest.write( "\n" ) 
+# ======================================================================================================
 
+
+
+# ======================================================================================================
 Genes = [ "ATRX" , "GAPDH" , "TUBA1A" , "ACTB" , "ALB" , "ALOX12" , "ANGPTL7" , "AOX1" , "APOE" , "ATOX1" , 
           "BNIP3" , "CAT" , "CCL5" , "CCS" , "CSDE1" , "CYBA" , "CYGB" , "DGKK" , "DHCR24" , "DUOX1" , "DUOX2" , 
           "DUSP1" , "EPHX2" , "EPX" , "FOXM1" , "GLRX2" , "GPR156" , "GPX1" , "GPX2" , "GPX3" , "GPX4" , "GPX5" , 
@@ -22,17 +32,13 @@ Genes = [ "ATRX" , "GAPDH" , "TUBA1A" , "ACTB" , "ALB" , "ALOX12" , "ANGPTL7" , 
 
 Mutations = [ "ATRX" , "IDH1" , "SETD2" ]
 
-with open( args.dest , "w" ) as dest:                                              # Open the destination tsv and call the file-handle 'dest'
-  lCases = LoadCases( args.src )                                                   # Load the formatted tarball as a dictionary of CaseId strings and Case objects
-  dest.write( "CaseId" )                                                           # Write the header-line to the destination tsv
-  for i in Mutations : dest.write( "\tMutations-" + i )
-  for i in Genes :     dest.write( "\tStarCount-" + i )
-  dest.write( "\n" )
-  
-  for lCaseId , lCase in tqdm.tqdm( lCases.items() , ncols=Ncol , desc="Saving" ): # Iterate over the cases storing the CaseId and Case in separate variables    
-    for lStarCount in lCase.StarCounts:                                            # Then iterate over each star-count file
-      dest.write( lCaseId )
-      for i in Mutations: dest.write( "\t" + str( lCase.GetMutations( i , "" ) ) )         
-      for i in Genes:     dest.write( "\t" + str( lStarCount[i] ) )
-      dest.write( "\n" )  
-# ==============================================================================================================================================
+parser = argparse.ArgumentParser()
+parser.add_argument( '--src' , required=True , help='The source tarball')
+parser.add_argument( '--dest' , required=True , help='The destination file')
+args = parser.parse_args()
+if not args.src.endswith( ".tgz" ): raise Exception( "Source file must have '.tgz' file-extension" )
+if not args.dest.endswith( ".tsv" ): raise Exception( "Destination file must have '.tsv' file-extension" )
+
+with open( args.dest , "w" ) as dest:                                            # Open the destination tsv and call the file-handle 'dest'
+  LoadAndForEach( args.src , Analyze , Init )                 # Load the formatted tarball and analyze on-the-fly, making use of the optional Before argument
+# ======================================================================================================
