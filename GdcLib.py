@@ -45,7 +45,6 @@ class Mutation:
     return " , ".join( [ f"{j[0]}({j[1]})" for j in self.Raw ] )
 # ======================================================================================================
 
-
 # ======================================================================================================
 class StarCounts:
   GeneCatalogue = {}
@@ -56,7 +55,6 @@ class StarCounts:
   def __getitem__( self , aGene ): 
     return self.Genes[ StarCounts.GeneCatalogue[ aGene ] ]
 # ======================================================================================================
-
 
 # ======================================================================================================
 class Case:
@@ -74,6 +72,8 @@ class Case:
     return default
     
 # ======================================================================================================
+
+
 
 # ======================================================================================================
 def SaveCases( aFilename , aCases ):
@@ -102,17 +102,12 @@ def LoadCases( aFilename ):
   return lCases
 # ======================================================================================================
 
-
 # ======================================================================================================
 def LoadAndForEach( aFilename , aFn , Before = None , After = None ):
   with tarfile.open( aFilename , mode='r:gz' ) as src:
-    StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "GeneCatalogue" ).read() )    
-    
-    if not Before is None:  Before()
-    
+    StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "GeneCatalogue" ).read() )       
+    if not Before is None:  Before()    
     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Load and analyze" ):
       if lName.name != "GeneCatalogue" : aFn( _pickle.loads( src.extractfile( lName ).read() ) )      
-
     if not After is None:  After()
-
 # ======================================================================================================

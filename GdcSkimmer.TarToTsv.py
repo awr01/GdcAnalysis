@@ -39,6 +39,5 @@ args = parser.parse_args()
 if not args.src.endswith( ".tgz" ): raise Exception( "Source file must have '.tgz' file-extension" )
 if not args.dest.endswith( ".tsv" ): raise Exception( "Destination file must have '.tsv' file-extension" )
 
-with open( args.dest , "w" ) as dest:                                            # Open the destination tsv and call the file-handle 'dest'
-  LoadAndForEach( args.src , Analyze , Init )                 # Load the formatted tarball and analyze on-the-fly, making use of the optional Before argument
+with open( args.dest , "w" ) as dest: LoadAndForEach( args.src , Analyze , Init ) # Open the destination tsv and call the file-handle 'dest', then load src and analyze on-the-fly, making use of the optional Before argument
 # ======================================================================================================
