@@ -20,16 +20,15 @@ Genes = [ "ATRX" , "GAPDH" , "TUBA1A" , "ACTB" , "ALB" , "ALOX12" , "ANGPTL7" , 
 
 Mutations = [ "ATRX" , "IDH1" , "SETD2" ]
 
-with open( args.dest , "w" ) as dest:                                    # Open the destination tsv and call the file-handle 'dest'
-  lCases = LoadCases( args.src )                      # Load the GDC data from the formatted tarball as a dictionary of CaseId strings and Case objects
-                                                                         # keeping only the specified Genes from the star-count file
-  dest.write( "CaseId" ) # Write the header-line to the destination tsv
+with open( args.dest , "w" ) as dest:                                              # Open the destination tsv and call the file-handle 'dest'
+  lCases = LoadCases( args.src )                                                   # Load the formatted tarball as a dictionary of CaseId strings and Case objects
+  dest.write( "CaseId" )                                                           # Write the header-line to the destination tsv
   for i in Mutations : dest.write( "\tMutations-" + i )
   for i in Genes :     dest.write( "\tStarCount-" + i )
   dest.write( "\n" )
   
-  for lCaseId , lCase in lCases.items():                     # Sort the cases by case-id, then iterate over them storing the CaseId and Case in separate variables    
-    for lStarCount in lCase.StarCounts:                                # Else, iterate over each star-count file
+  for lCaseId , lCase in lCases.items():                                           # Iterate over the cases storing the CaseId and Case in separate variables    
+    for lStarCount in lCase.StarCounts:                                            # Then iterate over each star-count file
       dest.write( lCaseId )
       for i in Mutations: dest.write( "\t" + str( lCase.GetMutations( i , "" ) ) )         
       for i in Genes:     dest.write( "\t" + str( lStarCount[i] ) )
