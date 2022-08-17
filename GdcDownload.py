@@ -82,11 +82,10 @@ def AddRnaSeqFileToCase( aCase , aFile ):
     line = [ i.strip() for i in line.split( "\t" , maxsplit = 7 ) ]
     lGeneName , lGeneType , lValue = line[1] , line[2] , float( line[6] ) # Gene-name , Gene-type , TPM_unstranded
     if not lGeneName in StarCounts.GeneCatalogue:
-      StarCounts.GeneCatalogue[ lGeneName ] = len( StarCounts.GeneCatalogue )
-      StarCounts.GeneTypes.append( lGeneType )
+      StarCounts.GeneCatalogue[ lGeneName ] = GeneCatalogueEntry( len( StarCounts.GeneCatalogue ) , lGeneType )
       lStarCounts.TpmUnstranded.append( lValue )
     else:
-      lStarCounts.TpmUnstranded[ StarCounts.GeneCatalogue[lGeneName] ] = lValue
+      lStarCounts.TpmUnstranded[ StarCounts.GeneCatalogue[lGeneName].index ] = lValue
         
   aCase.StarCounts.append( lStarCounts )
 # ======================================================================================================

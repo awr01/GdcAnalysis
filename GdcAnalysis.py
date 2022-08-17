@@ -25,7 +25,9 @@ def Analyze( aCase ):
 
 # ======================================================================================================
 def Finally():
-  for GeneName , GeneType , GeneData in tqdm.tqdm( zip( StarCounts.GeneCatalogue , StarCounts.GeneTypes , Genes ) , ncols=Ncol , total=len(Genes) , desc="Saving" ):
+  for GeneName , GeneData in tqdm.tqdm( zip( StarCounts.GeneCatalogue , Genes ) , ncols=Ncol , total=len(Genes) , desc="Saving" ):
+    GeneType = StarCounts.GeneCatalogue[ GeneName ].type
+
     num0 , mean0 , var0 = len( GeneData[0] ) , mean( GeneData[0] ) , var( GeneData[0] )               # Calculate the mean and variance of the muts
     num1 , mean1 , var1 = len( GeneData[1] ) , mean( GeneData[1] ) , var( GeneData[1] )               # Calculate the mean and variance of the WTs
     if mean0 == 0 or mean1 == 0 : continue
