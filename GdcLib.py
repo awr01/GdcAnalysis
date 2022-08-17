@@ -47,12 +47,13 @@ class Mutation:
 # ======================================================================================================
 class StarCounts:
   GeneCatalogue = {}
+  GeneTypes = []
 
   def __init__( self ): 
-    self.Genes = [ None for i in range( len( StarCounts.GeneCatalogue ) ) ]
+    self.TpmUnstranded = [ None for i in range( len( StarCounts.GeneCatalogue ) ) ]
 
   def __getitem__( self , aGene ): 
-    return self.Genes[ StarCounts.GeneCatalogue[ aGene ] ]
+    return self.TpmUnstranded[ StarCounts.GeneCatalogue[ aGene ] ]
 # ======================================================================================================
 
 # ======================================================================================================
@@ -82,6 +83,11 @@ def SaveCases( aFilename , aCases ):
     lInfo = tarfile.TarInfo( "GeneCatalogue" )
     lInfo.size = lData.getbuffer().nbytes
     dest.addfile( lInfo , lData )
+
+    lData = io.BytesIO( _pickle.dumps( StarCounts.GeneTypes ) )    
+    lInfo = tarfile.TarInfo( "GeneTypes" )
+    lInfo.size = lData.getbuffer().nbytes
+    dest.addfile( lInfo , lData )
     
     for i,j in tqdm.tqdm( aCases.items() , ncols=Ncol , desc="Saving to disk" ):
       lData = io.BytesIO( _pickle.dumps( j ) )    
@@ -96,6 +102,7 @@ def LoadCases( aFilename ):
   with tarfile.open( aFilename , mode='r:gz' ) as src:
     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Loading cases" ):
       if lName.name == "GeneCatalogue" : StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( lName ).read() )
+      elif lName.name == "GeneTypes" :   StarCounts.GeneTypes     = _pickle.loads( src.extractfile( lName ).read() )
       else:                              lCases[ lName.name ]     = _pickle.loads( src.extractfile( lName ).read() )
       
   return lCases
@@ -105,8 +112,9 @@ def LoadCases( aFilename ):
 def LoadAndForEach( aFilename , aFn , Before = None , After = None ):
   with tarfile.open( aFilename , mode='r:gz' ) as src:
     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "GeneCatalogue" ).read() )       
+    StarCounts.GeneTypes = _pickle.loads( src.extractfile( "GeneTypes" ).read() )       
     if not Before is None:  Before()    
     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Load and analyze" ):
-      if lName.name != "GeneCatalogue" : aFn( _pickle.loads( src.extractfile( lName ).read() ) )      
+      if lName.name != "GeneCatalogue" and lName.name != "GeneTypes" : aFn( _pickle.loads( src.extractfile( lName ).read() ) )      
     if not After is None:  After()
 # ======================================================================================================
