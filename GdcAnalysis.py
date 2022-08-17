@@ -8,7 +8,7 @@ warnings.filterwarnings('ignore')
 def Init():
   global Genes
   Genes = [ ( [],[] ) for i in StarCounts.GeneCatalogue ]
-  dest.write( f"Gene\tGene-type\tFlagged\tMut-count\tMut-mean\tMut-var\tWT-count\tWT-mean\tWT-var\tMut mean/WT mean\tlog_1.5(ratio)\tt-score\tp-value\t'-log_10(p-value)\n" ) # Write headers
+  dest.write( f"Gene\tGene-type\tFlagged\tMut-count\tMut-mean\tMut-var\tWT-count\tWT-mean\tWT-var\tMut mean/WT mean\tlog_1.5(ratio)\tt-score\tp-value\tneg log_10(p-value)\n" ) # Write headers
 # ======================================================================================================
 
 # ======================================================================================================
@@ -26,7 +26,6 @@ def Analyze( aCase ):
 # ======================================================================================================
 def Finally():
   for GeneName , GeneData in tqdm.tqdm( zip( StarCounts.GeneCatalogue , Genes ) , ncols=Ncol , total=len(Genes) , desc="Saving" ):
-    GeneType = StarCounts.GeneCatalogue[ GeneName ].type
 
     num0 , mean0 , var0 = len( GeneData[0] ) , mean( GeneData[0] ) , var( GeneData[0] )               # Calculate the mean and variance of the muts
     num1 , mean1 , var1 = len( GeneData[1] ) , mean( GeneData[1] ) , var( GeneData[1] )               # Calculate the mean and variance of the WTs
@@ -38,6 +37,7 @@ def Finally():
     flag = "*" if GeneName in args.genes else ""
     t01, p01 = ttest_ind( GeneData[0] , GeneData[1] , equal_var = False ) # Calculate the t-score between each pair of lists
 
+    GeneType = StarCounts.GeneCatalogue[ GeneName ].type
     dest.write( f"{GeneName}\t{GeneType}\t{flag}\t{num0}\t{mean0}\t{var0}\t{num1}\t{mean1}\t{var1}\t{meanratio}\t{logmeanratio}\t{t01}\t{p01}\t{-log10(p01)}\n" )
 # ======================================================================================================
 
