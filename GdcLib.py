@@ -76,34 +76,28 @@ class Case:
 
 
 # ======================================================================================================
+def DumpToTar( dest , obj , name ):
+  lData = io.BytesIO( _pickle.dumps( obj ) )    
+  lInfo = tarfile.TarInfo( name )
+  lInfo.size = lData.getbuffer().nbytes
+  dest.addfile( lInfo , lData )
+
 def SaveCases( aFilename , aCases ):
   with tarfile.open( aFilename , mode='w|gz' ) as dest:
-
-    lData = io.BytesIO( _pickle.dumps( StarCounts.GeneCatalogue ) )    
-    lInfo = tarfile.TarInfo( "GeneCatalogue" )
-    lInfo.size = lData.getbuffer().nbytes
-    dest.addfile( lInfo , lData )
-
-    lData = io.BytesIO( _pickle.dumps( StarCounts.GeneTypes ) )    
-    lInfo = tarfile.TarInfo( "GeneTypes" )
-    lInfo.size = lData.getbuffer().nbytes
-    dest.addfile( lInfo , lData )
-    
-    for i,j in tqdm.tqdm( aCases.items() , ncols=Ncol , desc="Saving to disk" ):
-      lData = io.BytesIO( _pickle.dumps( j ) )    
-      lInfo = tarfile.TarInfo( i )
-      lInfo.size = lData.getbuffer().nbytes
-      dest.addfile( lInfo , lData )
+    DumpToTar( dest , StarCounts.GeneCatalogue , "@GeneCatalogue" )
+    DumpToTar( dest , StarCounts.GeneTypes ,  "@GeneTypes" )   
+    for i,j in tqdm.tqdm( aCases.items() , ncols=Ncol , desc="Saving to disk" ): DumpToTar( dest , j , i )
 # ======================================================================================================
 
 # ======================================================================================================
 def LoadCases( aFilename ):
   lCases = {}
   with tarfile.open( aFilename , mode='r:gz' ) as src:
+    StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
+    StarCounts.GeneTypes     = _pickle.loads( src.extractfile( "@GeneTypes" ).read() )       
+
     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Loading cases" ):
-      if lName.name == "GeneCatalogue" : StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( lName ).read() )
-      elif lName.name == "GeneTypes" :   StarCounts.GeneTypes     = _pickle.loads( src.extractfile( lName ).read() )
-      else:                              lCases[ lName.name ]     = _pickle.loads( src.extractfile( lName ).read() )
+      if lName.name[0] != "@": lCases[ lName.name ] = _pickle.loads( src.extractfile( lName ).read() )
       
   return lCases
 # ======================================================================================================
@@ -111,10 +105,10 @@ def LoadCases( aFilename ):
 # ======================================================================================================
 def LoadAndForEach( aFilename , aFn , Before = None , After = None ):
   with tarfile.open( aFilename , mode='r:gz' ) as src:
-    StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "GeneCatalogue" ).read() )       
-    StarCounts.GeneTypes = _pickle.loads( src.extractfile( "GeneTypes" ).read() )       
+    StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
+    StarCounts.GeneTypes     = _pickle.loads( src.extractfile( "@GeneTypes" ).read() )       
     if not Before is None:  Before()    
     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Load and analyze" ):
-      if lName.name != "GeneCatalogue" and lName.name != "GeneTypes" : aFn( _pickle.loads( src.extractfile( lName ).read() ) )      
+      if lName.name[0] != "@" : aFn( _pickle.loads( src.extractfile( lName ).read() ) )      
     if not After is None:  After()
 # ======================================================================================================
