@@ -2,13 +2,9 @@ from GdcLib import *
 from GdcUtils import *
 from scipy.stats import ttest_ind
 from numpy import mean , var , log10 , warnings
+from openpyxl import Workbook
 warnings.filterwarnings('ignore')
 
-
-from openpyxl import Workbook
-wb = Workbook()
-
-wb.remove_sheet( wb.active ) # Delete default sheet
 
 # ======================================================================================================
 def Analyze( aCase ):    
@@ -29,9 +25,10 @@ def Analyze( aCase ):
 # ======================================================================================================
 def FinallyTsv():
   with open( args.dest , "w" ) as dest: 
-    for DiseaseType , GeneList in Genes.items():
-      dest.write( f"Disease-type\tGene\tGene-type\tFlagged\tMut-count\tMut-mean\tMut-var\tWT-count\tWT-mean\tWT-var\tMut mean/WT mean\tlog_1.5(ratio)\tt-score\tp-value\tneg log_10(p-value)\n" ) # Write headers
-      
+    dest.write( f"Disease-type\tGene\tGene-type\tFlagged\tMut-count\tMut-mean\tMut-var\tWT-count\tWT-mean\tWT-var\tMut mean/WT mean\tlog_1.5(ratio)\tt-score\tp-value\tneg log_10(p-value)\n" ) # Write headers
+    
+    for DiseaseType , GeneList in Genes.items():  
+      if len( GeneList[0][0] ) == 0 : continue
       for GeneName , GeneData in tqdm.tqdm( zip( StarCounts.GeneCatalogue , GeneList ) , ncols=Ncol , total=len(GeneList) , desc="Saving" ):
         num0 , mean0 , var0 = len( GeneData[0] ) , mean( GeneData[0] ) , var( GeneData[0] )               # Calculate the mean and variance of the muts
         num1 , mean1 , var1 = len( GeneData[1] ) , mean( GeneData[1] ) , var( GeneData[1] )               # Calculate the mean and variance of the WTs
@@ -49,11 +46,17 @@ def FinallyTsv():
 
 # ======================================================================================================
 def FinallyXlsx():
-  for DiseaseType , GeneList in Genes.items():
+  wb = Workbook()
+  wb.remove_sheet( wb.active ) # Delete default sheet
+
+  for DiseaseType , GeneList in tqdm.tqdm( sorted( Genes.items() ) , ncols=Ncol , desc="Saving" ):
+  
+    if len( GeneList[0][0] ) == 0 : continue
+  
     ws = wb.create_sheet( DiseaseType )
     ws.append( [ "Gene" , "Gene-type" , "Flagged" , "Mut-count" , "Mut-mean" , "Mut-var" , "WT-count" , "WT-mean" , "WT-var" , "Mut mean/WT mean" , "log_1.5(ratio)" , "t-score" , "p-value" , "neg log_10(p-value)\n" ] ) # Write headers
     
-    for GeneName , GeneData in tqdm.tqdm( zip( StarCounts.GeneCatalogue , GeneList ) , ncols=Ncol , total=len(GeneList) , desc="Saving" ):
+    for GeneName , GeneData in tqdm.tqdm( zip( StarCounts.GeneCatalogue , GeneList ), leave=False , ncols=Ncol , total=len(GeneList) , desc = DiseaseType ):
       num0 , mean0 , var0 = len( GeneData[0] ) , mean( GeneData[0] ) , var( GeneData[0] )               # Calculate the mean and variance of the muts
       num1 , mean1 , var1 = len( GeneData[1] ) , mean( GeneData[1] ) , var( GeneData[1] )               # Calculate the mean and variance of the WTs
       if mean0 == 0 or mean1 == 0 : continue
@@ -81,7 +84,4 @@ if args.dest.endswith( ".tsv" ):
   LoadAndForEach( args.src , Analyze , After = FinallyTsv ) # Load src and analyze on-the-fly, making use of the optional After function
 else:
   LoadAndForEach( args.src , Analyze , After = FinallyXlsx ) # Load src and analyze on-the-fly, making use of the optional After function
-
-
-
 # ======================================================================================================
