@@ -128,6 +128,11 @@ class Case:
     if aGene in self.Mutations: return self.Mutations[ aGene ]
     return default
     
+  def FormattedAge( self ):
+    years = int( self.AgeAtDiagnosis / 365.25 )
+    days = int( self.AgeAtDiagnosis - ( 365.25 * years ) )
+    return f"{years:02}|{days:03}"
+    
 # ======================================================================================================
 
 
