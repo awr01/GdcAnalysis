@@ -53,6 +53,16 @@ class translated_unprocessed_pseudogene(metaclass=Meta): class_str = "translated
 class unitary_pseudogene(metaclass=Meta): class_str = "unitary_pseudogene" 
 class unprocessed_pseudogene(metaclass=Meta): class_str = "unprocessed_pseudogene" 
 class vault_RNA(metaclass=Meta): class_str = "vault_RNA" 
+
+  # # GeneTypeLUT = { "IG_C_gene":IG_C_gene , "IG_C_pseudogene":IG_C_pseudogene , "IG_D_gene":IG_D_gene , "IG_J_gene":IG_J_gene , "IG_J_pseudogene":IG_J_pseudogene , "IG_pseudogene":IG_pseudogene , 
+                  # # "IG_V_gene":IG_V_gene , "IG_V_pseudogene":IG_V_pseudogene , "lncRNA":lncRNA , "miRNA":miRNA , "misc_RNA":misc_RNA , "Mt_rRNA":Mt_rRNA , "Mt_tRNA":Mt_tRNA , 
+                  # # "polymorphic_pseudogene":polymorphic_pseudogene , "processed_pseudogene":processed_pseudogene , "protein_coding":protein_coding , "pseudogene":pseudogene , "ribozyme":ribozyme , 
+                  # # "rRNA":rRNA , "rRNA_pseudogene":rRNA_pseudogene , "scaRNA":scaRNA , "scRNA":scRNA , "snoRNA":snoRNA , "snRNA":snRNA , "sRNA":sRNA , "TEC":TEC , "TR_C_gene":TR_C_gene , 
+                  # # "TR_D_gene":TR_D_gene , "TR_J_gene":TR_J_gene , "TR_J_pseudogene":TR_J_pseudogene , "TR_V_gene":TR_V_gene , "TR_V_pseudogene":TR_V_pseudogene , 
+                  # # "transcribed_processed_pseudogene":transcribed_processed_pseudogene , "transcribed_unitary_pseudogene":transcribed_unitary_pseudogene , 
+                  # # "transcribed_unprocessed_pseudogene":transcribed_unprocessed_pseudogene , "translated_processed_pseudogene":translated_processed_pseudogene , 
+                  # # "translated_unprocessed_pseudogene":translated_unprocessed_pseudogene , "unitary_pseudogene":unitary_pseudogene , "unprocessed_pseudogene":unprocessed_pseudogene , 
+                  # # "vault_RNA":vault_RNA }
 # ======================================================================================================
 
 
@@ -90,19 +100,9 @@ class Mutation:
 
 # ======================================================================================================
 class GeneCatalogueEntry:
-  GeneTypeLUT = { "IG_C_gene":IG_C_gene , "IG_C_pseudogene":IG_C_pseudogene , "IG_D_gene":IG_D_gene , "IG_J_gene":IG_J_gene , "IG_J_pseudogene":IG_J_pseudogene , "IG_pseudogene":IG_pseudogene , 
-                  "IG_V_gene":IG_V_gene , "IG_V_pseudogene":IG_V_pseudogene , "lncRNA":lncRNA , "miRNA":miRNA , "misc_RNA":misc_RNA , "Mt_rRNA":Mt_rRNA , "Mt_tRNA":Mt_tRNA , 
-                  "polymorphic_pseudogene":polymorphic_pseudogene , "processed_pseudogene":processed_pseudogene , "protein_coding":protein_coding , "pseudogene":pseudogene , "ribozyme":ribozyme , 
-                  "rRNA":rRNA , "rRNA_pseudogene":rRNA_pseudogene , "scaRNA":scaRNA , "scRNA":scRNA , "snoRNA":snoRNA , "snRNA":snRNA , "sRNA":sRNA , "TEC":TEC , "TR_C_gene":TR_C_gene , 
-                  "TR_D_gene":TR_D_gene , "TR_J_gene":TR_J_gene , "TR_J_pseudogene":TR_J_pseudogene , "TR_V_gene":TR_V_gene , "TR_V_pseudogene":TR_V_pseudogene , 
-                  "transcribed_processed_pseudogene":transcribed_processed_pseudogene , "transcribed_unitary_pseudogene":transcribed_unitary_pseudogene , 
-                  "transcribed_unprocessed_pseudogene":transcribed_unprocessed_pseudogene , "translated_processed_pseudogene":translated_processed_pseudogene , 
-                  "translated_unprocessed_pseudogene":translated_unprocessed_pseudogene , "unitary_pseudogene":unitary_pseudogene , "unprocessed_pseudogene":unprocessed_pseudogene , 
-                  "vault_RNA":vault_RNA } 
-
   def __init__( self , index , typename ):
     self.index = index
-    self.type = GeneCatalogueEntry.GeneTypeLUT[ typename ]
+    self.type = typename
 
 class StarCounts:
   GeneCatalogue = {}
@@ -116,11 +116,10 @@ class StarCounts:
 
 # ======================================================================================================
 class Case:
-  def __init__( self , CaseId , AgeAtDiagnosis , DiseaseType , PrimarySite ):
+  def __init__( self , CaseId , AgeAtDiagnosis , DiseaseType ):
     self.CaseId = CaseId
     self.AgeAtDiagnosis = AgeAtDiagnosis
     self.DiseaseType = DiseaseType
-    self.PrimarySite = PrimarySite
 
     self.Mutations = {}
     self.StarCounts = [] 
