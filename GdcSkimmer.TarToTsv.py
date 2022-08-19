@@ -19,5 +19,6 @@ def Analyze( aCase ):
 # ======================================================================================================
 
 # ======================================================================================================
+if not args.dest.endswith( ".tsv" ): raise Exception( "GdcSkimmer.TarToTsv.py destination must be .tsv file" )
 with open( args.dest , "w" ) as dest: LoadAndForEach( args.src , Analyze , Init ) # Open the destination tsv and call the file-handle 'dest', then load src and analyze on-the-fly, making use of the optional Before argument
 # ======================================================================================================
