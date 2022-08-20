@@ -13,56 +13,56 @@ class MultiMutation(metaclass=Meta):  class_str = "multi-mutation"
 class SilentOrSplice(metaclass=Meta): class_str = "silent-or-splice"
 
 # Gene-type enumerations
-class IG_C_gene(metaclass=Meta): class_str = "IG_C_gene" 
-class IG_C_pseudogene(metaclass=Meta): class_str = "IG_C_pseudogene" 
-class IG_D_gene(metaclass=Meta): class_str = "IG_D_gene" 
-class IG_J_gene(metaclass=Meta): class_str = "IG_J_gene" 
-class IG_J_pseudogene(metaclass=Meta): class_str = "IG_J_pseudogene" 
-class IG_pseudogene(metaclass=Meta): class_str = "IG_pseudogene" 
-class IG_V_gene(metaclass=Meta): class_str = "IG_V_gene" 
-class IG_V_pseudogene(metaclass=Meta): class_str = "IG_V_pseudogene" 
-class lncRNA(metaclass=Meta): class_str = "lncRNA" 
-class miRNA(metaclass=Meta): class_str = "miRNA" 
-class misc_RNA(metaclass=Meta): class_str = "misc_RNA" 
-class Mt_rRNA(metaclass=Meta): class_str = "Mt_rRNA" 
-class Mt_tRNA(metaclass=Meta): class_str = "Mt_tRNA" 
-class polymorphic_pseudogene(metaclass=Meta): class_str = "polymorphic_pseudogene" 
-class processed_pseudogene(metaclass=Meta): class_str = "processed_pseudogene" 
-class protein_coding(metaclass=Meta): class_str = "protein_coding" 
-class pseudogene(metaclass=Meta): class_str = "pseudogene" 
-class ribozyme(metaclass=Meta): class_str = "ribozyme" 
-class rRNA(metaclass=Meta): class_str = "rRNA" 
-class rRNA_pseudogene(metaclass=Meta): class_str = "rRNA_pseudogene" 
-class scaRNA(metaclass=Meta): class_str = "scaRNA" 
-class scRNA(metaclass=Meta): class_str = "scRNA" 
-class snoRNA(metaclass=Meta): class_str = "snoRNA" 
-class snRNA(metaclass=Meta): class_str = "snRNA" 
-class sRNA(metaclass=Meta): class_str = "sRNA" 
-class TEC(metaclass=Meta): class_str = "TEC" 
-class TR_C_gene(metaclass=Meta): class_str = "TR_C_gene" 
-class TR_D_gene(metaclass=Meta): class_str = "TR_D_gene" 
-class TR_J_gene(metaclass=Meta): class_str = "TR_J_gene" 
-class TR_J_pseudogene(metaclass=Meta): class_str = "TR_J_pseudogene" 
-class TR_V_gene(metaclass=Meta): class_str = "TR_V_gene" 
-class TR_V_pseudogene(metaclass=Meta): class_str = "TR_V_pseudogene" 
-class transcribed_processed_pseudogene(metaclass=Meta): class_str = "transcribed_processed_pseudogene" 
-class transcribed_unitary_pseudogene(metaclass=Meta): class_str = "transcribed_unitary_pseudogene" 
-class transcribed_unprocessed_pseudogene(metaclass=Meta): class_str = "transcribed_unprocessed_pseudogene" 
-class translated_processed_pseudogene(metaclass=Meta): class_str = "translated_processed_pseudogene" 
-class translated_unprocessed_pseudogene(metaclass=Meta): class_str = "translated_unprocessed_pseudogene" 
-class unitary_pseudogene(metaclass=Meta): class_str = "unitary_pseudogene" 
-class unprocessed_pseudogene(metaclass=Meta): class_str = "unprocessed_pseudogene" 
-class vault_RNA(metaclass=Meta): class_str = "vault_RNA" 
+# class IG_C_gene(metaclass=Meta): class_str = "IG_C_gene" 
+# class IG_C_pseudogene(metaclass=Meta): class_str = "IG_C_pseudogene" 
+# class IG_D_gene(metaclass=Meta): class_str = "IG_D_gene" 
+# class IG_J_gene(metaclass=Meta): class_str = "IG_J_gene" 
+# class IG_J_pseudogene(metaclass=Meta): class_str = "IG_J_pseudogene" 
+# class IG_pseudogene(metaclass=Meta): class_str = "IG_pseudogene" 
+# class IG_V_gene(metaclass=Meta): class_str = "IG_V_gene" 
+# class IG_V_pseudogene(metaclass=Meta): class_str = "IG_V_pseudogene" 
+# class lncRNA(metaclass=Meta): class_str = "lncRNA" 
+# class miRNA(metaclass=Meta): class_str = "miRNA" 
+# class misc_RNA(metaclass=Meta): class_str = "misc_RNA" 
+# class Mt_rRNA(metaclass=Meta): class_str = "Mt_rRNA" 
+# class Mt_tRNA(metaclass=Meta): class_str = "Mt_tRNA" 
+# class polymorphic_pseudogene(metaclass=Meta): class_str = "polymorphic_pseudogene" 
+# class processed_pseudogene(metaclass=Meta): class_str = "processed_pseudogene" 
+# class protein_coding(metaclass=Meta): class_str = "protein_coding" 
+# class pseudogene(metaclass=Meta): class_str = "pseudogene" 
+# class ribozyme(metaclass=Meta): class_str = "ribozyme" 
+# class rRNA(metaclass=Meta): class_str = "rRNA" 
+# class rRNA_pseudogene(metaclass=Meta): class_str = "rRNA_pseudogene" 
+# class scaRNA(metaclass=Meta): class_str = "scaRNA" 
+# class scRNA(metaclass=Meta): class_str = "scRNA" 
+# class snoRNA(metaclass=Meta): class_str = "snoRNA" 
+# class snRNA(metaclass=Meta): class_str = "snRNA" 
+# class sRNA(metaclass=Meta): class_str = "sRNA" 
+# class TEC(metaclass=Meta): class_str = "TEC" 
+# class TR_C_gene(metaclass=Meta): class_str = "TR_C_gene" 
+# class TR_D_gene(metaclass=Meta): class_str = "TR_D_gene" 
+# class TR_J_gene(metaclass=Meta): class_str = "TR_J_gene" 
+# class TR_J_pseudogene(metaclass=Meta): class_str = "TR_J_pseudogene" 
+# class TR_V_gene(metaclass=Meta): class_str = "TR_V_gene" 
+# class TR_V_pseudogene(metaclass=Meta): class_str = "TR_V_pseudogene" 
+# class transcribed_processed_pseudogene(metaclass=Meta): class_str = "transcribed_processed_pseudogene" 
+# class transcribed_unitary_pseudogene(metaclass=Meta): class_str = "transcribed_unitary_pseudogene" 
+# class transcribed_unprocessed_pseudogene(metaclass=Meta): class_str = "transcribed_unprocessed_pseudogene" 
+# class translated_processed_pseudogene(metaclass=Meta): class_str = "translated_processed_pseudogene" 
+# class translated_unprocessed_pseudogene(metaclass=Meta): class_str = "translated_unprocessed_pseudogene" 
+# class unitary_pseudogene(metaclass=Meta): class_str = "unitary_pseudogene" 
+# class unprocessed_pseudogene(metaclass=Meta): class_str = "unprocessed_pseudogene" 
+# class vault_RNA(metaclass=Meta): class_str = "vault_RNA" 
 
-  # # GeneTypeLUT = { "IG_C_gene":IG_C_gene , "IG_C_pseudogene":IG_C_pseudogene , "IG_D_gene":IG_D_gene , "IG_J_gene":IG_J_gene , "IG_J_pseudogene":IG_J_pseudogene , "IG_pseudogene":IG_pseudogene , 
-                  # # "IG_V_gene":IG_V_gene , "IG_V_pseudogene":IG_V_pseudogene , "lncRNA":lncRNA , "miRNA":miRNA , "misc_RNA":misc_RNA , "Mt_rRNA":Mt_rRNA , "Mt_tRNA":Mt_tRNA , 
-                  # # "polymorphic_pseudogene":polymorphic_pseudogene , "processed_pseudogene":processed_pseudogene , "protein_coding":protein_coding , "pseudogene":pseudogene , "ribozyme":ribozyme , 
-                  # # "rRNA":rRNA , "rRNA_pseudogene":rRNA_pseudogene , "scaRNA":scaRNA , "scRNA":scRNA , "snoRNA":snoRNA , "snRNA":snRNA , "sRNA":sRNA , "TEC":TEC , "TR_C_gene":TR_C_gene , 
-                  # # "TR_D_gene":TR_D_gene , "TR_J_gene":TR_J_gene , "TR_J_pseudogene":TR_J_pseudogene , "TR_V_gene":TR_V_gene , "TR_V_pseudogene":TR_V_pseudogene , 
-                  # # "transcribed_processed_pseudogene":transcribed_processed_pseudogene , "transcribed_unitary_pseudogene":transcribed_unitary_pseudogene , 
-                  # # "transcribed_unprocessed_pseudogene":transcribed_unprocessed_pseudogene , "translated_processed_pseudogene":translated_processed_pseudogene , 
-                  # # "translated_unprocessed_pseudogene":translated_unprocessed_pseudogene , "unitary_pseudogene":unitary_pseudogene , "unprocessed_pseudogene":unprocessed_pseudogene , 
-                  # # "vault_RNA":vault_RNA }
+# # GeneTypeLUT = { "IG_C_gene":IG_C_gene , "IG_C_pseudogene":IG_C_pseudogene , "IG_D_gene":IG_D_gene , "IG_J_gene":IG_J_gene , "IG_J_pseudogene":IG_J_pseudogene , "IG_pseudogene":IG_pseudogene , 
+                # # "IG_V_gene":IG_V_gene , "IG_V_pseudogene":IG_V_pseudogene , "lncRNA":lncRNA , "miRNA":miRNA , "misc_RNA":misc_RNA , "Mt_rRNA":Mt_rRNA , "Mt_tRNA":Mt_tRNA , 
+                # # "polymorphic_pseudogene":polymorphic_pseudogene , "processed_pseudogene":processed_pseudogene , "protein_coding":protein_coding , "pseudogene":pseudogene , "ribozyme":ribozyme , 
+                # # "rRNA":rRNA , "rRNA_pseudogene":rRNA_pseudogene , "scaRNA":scaRNA , "scRNA":scRNA , "snoRNA":snoRNA , "snRNA":snRNA , "sRNA":sRNA , "TEC":TEC , "TR_C_gene":TR_C_gene , 
+                # # "TR_D_gene":TR_D_gene , "TR_J_gene":TR_J_gene , "TR_J_pseudogene":TR_J_pseudogene , "TR_V_gene":TR_V_gene , "TR_V_pseudogene":TR_V_pseudogene , 
+                # # "transcribed_processed_pseudogene":transcribed_processed_pseudogene , "transcribed_unitary_pseudogene":transcribed_unitary_pseudogene , 
+                # # "transcribed_unprocessed_pseudogene":transcribed_unprocessed_pseudogene , "translated_processed_pseudogene":translated_processed_pseudogene , 
+                # # "translated_unprocessed_pseudogene":translated_unprocessed_pseudogene , "unitary_pseudogene":unitary_pseudogene , "unprocessed_pseudogene":unprocessed_pseudogene , 
+                # # "vault_RNA":vault_RNA }
 # ======================================================================================================
 
 
@@ -152,18 +152,20 @@ def SaveCases( aFilename , aCases ):
 
 # ======================================================================================================
 def LoadCases( aFilename ):
-  lCases = {}
+  lCases = []
+  print( f"Opening '{aFilename}'" , flush=True )
   with tarfile.open( aFilename , mode='r:gz' ) as src:
     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
 
     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Loading cases" ):
-      if lName.name[0] != "@": lCases[ lName.name ] = _pickle.loads( src.extractfile( lName ).read() )
+      if lName.name[0] != "@": lCases.append( _pickle.loads( src.extractfile( lName ).read() ) )
       
   return lCases
 # ======================================================================================================
 
 # ======================================================================================================
 def LoadAndForEach( aFilename , aFn , Before = None , After = None ):
+  print( f"Opening '{aFilename}'" , flush=True )
   with tarfile.open( aFilename , mode='r:gz' ) as src:
     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
     if not Before is None:  Before()    

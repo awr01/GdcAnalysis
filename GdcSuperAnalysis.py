@@ -51,7 +51,7 @@ with open( args.dest , "w" ) as dest:
   lCases = LoadCases( args.src )
   
   Mutations = {}
-  for _ , lCase in lCases.items():
+  for lCase in lCases:
     for Gene , Mutation in lCase.Mutations.items():
       if Mutation.Classification == SilentOrSplice: continue # Ignore silents and slices
       if not Gene in Mutations: Mutations[ Gene ]  = 1
@@ -62,7 +62,7 @@ with open( args.dest , "w" ) as dest:
 
   for MutationOfInterest in tqdm.tqdm( Mutations , ncols=Ncol , desc="Scanning mutations" ):
     Genes = [ ( [],[] ) for i in StarCounts.GeneCatalogue ]      
-    for _ , lCase in lCases.items() : Analyze( lCase )  
+    for lCase in lCases : Analyze( lCase )  
     Finally()
 
   Save()
