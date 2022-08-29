@@ -1,6 +1,7 @@
 import argparse
 from GdcUtils import *
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument( '--src' , required=True , help='The source tarball')
 parser.add_argument( '--dest' , required=True , help='The destination file')
@@ -93,14 +94,14 @@ def GdcStatistics( aMut , aWT , aRatioCut = False , aPvalueCut = None ):
     if lRet.pvalue > aPvalueCut : return None
 
   lRet.mut.mean_error , lRet.mut.sd = sem( aMut ) , std( aMut )
-  lRet.wt.mean_error  , lRet.wt.sd   = sem( aWT )  , std( aWT )
+  lRet.wt.mean_error  , lRet.wt.sd  = sem( aWT )  , std( aWT )
 
-  mut_rel_error , wt_rel_error = lRet.mut.mean_error/lRet.mut.mean , lRet.wt.mean_error/lRet.wt.mean
-  mean_ratio_rel_error = sqrt( (mut_rel_error*mut_rel_error) + (wt_rel_error*wt_rel_error) )
+  mut_rel_error , wt_rel_error      = lRet.mut.mean_error/lRet.mut.mean , lRet.wt.mean_error/lRet.wt.mean
+  mean_ratio_rel_error              = sqrt( (mut_rel_error*mut_rel_error) + (wt_rel_error*wt_rel_error) )
   
-  lRet.mean_ratio_with_error     = ( mean_ratio   , mean_ratio_rel_error * mean_ratio )
-  lRet.log_mean_ratio_with_error = ( log10( mean_ratio ) * const0 , mean_ratio_rel_error * const1 )  
-  lRet.neg_log_pvalue            = -log10( lRet.pvalue )  
+  lRet.mean_ratio_with_error        = ( mean_ratio   , mean_ratio_rel_error * mean_ratio )
+  lRet.log_mean_ratio_with_error    = ( log10( mean_ratio ) * const0 , mean_ratio_rel_error * const1 )  
+  lRet.neg_log_pvalue               = -log10( lRet.pvalue )  
 
   return lRet
 # ======================================================================================================

@@ -27,24 +27,26 @@ def Flatten( Data , index ):
 # ======================================================================================================
 
 
-# ======================================================================================================
-def SplitString( aStr ):
-  lRet , cnt = "" , 0
-  for i in aStr:
-    if cnt > 23: 
-      if i == " " : 
-        lRet += "\n"
-        cnt = 0
-      else:
-        lRet += i
-        cnt += 1        
-    else:
-      lRet += i
-      cnt += 1
-      
-  return lRet  
-# ======================================================================================================
-  
+DiseaseTypeLut = {
+  "Brain Lower Grade Glioma" : "Brain Lower\nGrade Glioma" ,
+  "Sarcoma" : "Sarcoma" ,
+  "Glioblastoma Multiforme" : "Glioblastoma Multiforme" ,
+  "Pheochromocytoma and Paraganglioma" : "Pheochromocytoma\n& Paraganglioma" ,
+  "Uterine Corpus Endometrial Carcinoma" : "Uterine Corpus\nEndometrial Carcinoma" ,
+  "Ovarian Serous Cystadenocarcinoma" : "Ovarian Serous\nCystadenocarcinoma" ,
+  "Breast Invasive Carcinoma" : "Breast Invasive Carcinoma" ,
+  "Rectum Adenocarcinoma" : "Rectum Adenocarcinoma" ,
+  "Kidney Renal Clear Cell Carcinoma" : "Kidney Renal\nClear Cell Carcinoma" ,
+  "Bladder Urothelial Carcinoma" : "Bladder Urothelial Carcinoma" ,
+  "Skin Cutaneous Melanoma" : "Skin Cutaneous Melanoma" ,
+  "Colon Adenocarcinoma" : "Colon Adenocarcinoma" ,
+  "Stomach Adenocarcinoma" : "Stomach Adenocarcinoma" ,
+  "Lung Squamous Cell Carcinoma" : "Lung Squamous Cell Carcinoma" ,
+  "Head and Neck Squamous Cell Carcinoma" : "Head and Neck\nSquamous Cell Carcinoma" ,
+  "Cervical Squamous Cell Carcinoma and Endocervical Adenocarcinoma" : "Cervical Squamous Cell Carcinoma\n& Endocervical Adenocarcinoma" ,
+  "Lung Adenocarcinoma" : "Lung Adenocarcinoma"
+}
+
 
 # ======================================================================================================
 def Finally():
@@ -71,19 +73,20 @@ def Finally():
     lDiseaseType , lDataStats = lDiseaseIt
     lData , lStats = lDataStats
     
-    ax1.set_xlabel( SplitString( lDiseaseType ) )
+    ax1.set_xlabel( DiseaseTypeLut[ lDiseaseType ] , style='italic' , labelpad=1 )
     ax1.set_ylim( 0 , 100 )
-    box1 = ax1.boxplot( lData , labels= ["Mutant" , "Wild-type"] , widths= 0.8 , whis=False , showfliers=False , showmeans=True , meanprops=dict(color="black"), meanline=True, medianprops=dict(visible=False) )    
+    box1 = ax1.boxplot( lData , labels= ["$Mutant$" , "$Wild-type$"] , widths= 0.8 , whis=False , showfliers=False , showmeans=True , meanprops=dict(color="grey"), meanline=True, medianprops=dict(color="black") )    
     for i in range( 2 ): ax1.scatter( np.random.normal( i+1 , 0.05 , len( lData[i] ) ) , lData[i] , color=[ "r" , "b" ][i] , alpha=0.5 , s=1 )
 
     ax1.text( 0.6 , 50 , f'$N_{{Mutant}} = {len(lData[0])}$\n$N_{{Wild-type}} = {len(lData[1])}$\n$p_{{value}}={lStats.pvalue:.2e}$' , fontsize="x-small" )
 
+  # Blank the remaining subplots
   for ax1 in fig.axes[ len( lCasesByDisease2 ): ] : ax1.set_axis_off()
 
-
+  #Add the common y-axis label
   fig.add_subplot(111, frameon=False)
   plt.tick_params(labelcolor='none', which='both', top=False, bottom=False, left=False, right=False)
-  plt.ylabel("TPM-unstranded")
+  plt.ylabel( "TPM-unstranded" , style='italic' )
     
   # Draw the images
   fig.set_size_inches( 16 , 4*nrows )

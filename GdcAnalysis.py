@@ -1,13 +1,10 @@
 from GdcLib import *
 from GdcUtils import *
-from scipy.stats import ttest_ind
-from numpy import mean , var , log10 , warnings
 from openpyxl import Workbook
-warnings.filterwarnings('ignore')
 
 
 # ======================================================================================================
-def Analyze( aCase ):    
+def SortByDisease( aCase ):    
   index = 1                                                                      # Indices chosen for consistency with old code
   if MutationOfInterest in aCase.Mutations: 
     if aCase.Mutations[ MutationOfInterest ].Classification == SilentOrSplice : return
@@ -18,83 +15,87 @@ def Analyze( aCase ):
   lCases2[ lDiseaseType ][ index ].append( aCase )
 # ======================================================================================================
 
-# # ======================================================================================================
-# def FinallyTsv():
-  # with open( args.dest , "w" ) as dest: 
-    # dest.write( f"Disease-type\tGene\tGene-type\tFlagged\tMut-count\tMut-mean\tMut-var\tWT-count\tWT-mean\tWT-var\tMut mean/WT mean\tlog_1.5(ratio)\tt-score\tp-value\tneg log_10(p-value)\n" ) # Write headers
-    
-    # for DiseaseType , GeneList in Genes.items():  
-      # if len( GeneList[0][0] ) == 0 : continue
-      # for GeneName , GeneData in tqdm.tqdm( zip( StarCounts.GeneCatalogue , GeneList ) , ncols=Ncol , total=len(GeneList) , desc="Saving" ):
-        # num0 , mean0 , var0 = len( GeneData[0] ) , mean( GeneData[0] ) , var( GeneData[0] )               # Calculate the mean and variance of the muts
-        # num1 , mean1 , var1 = len( GeneData[1] ) , mean( GeneData[1] ) , var( GeneData[1] )               # Calculate the mean and variance of the WTs
-        # if mean0 == 0 or mean1 == 0 : continue
 
-        # meanratio = mean0 / mean1
-        # logmeanratio = log10( meanratio ) / log10( 1.5 ) 
-        
-        # flag = "*" if GeneName in args.genes else ""
-        # t01, p01 = ttest_ind( GeneData[0] , GeneData[1] , equal_var = False ) # Calculate the t-score between each pair of lists
-
-        # GeneType = StarCounts.GeneCatalogue[ GeneName ].type
-        # dest.write( f"{DiseaseType}\t{GeneName}\t{GeneType}\t{flag}\t{num0}\t{mean0}\t{var0}\t{num1}\t{mean1}\t{var1}\t{meanratio}\t{logmeanratio}\t{t01}\t{p01}\t{-log10(p01)}\n" )
-# # ======================================================================================================
 
 # ======================================================================================================
-def FinallyXlsx():
+def Flatten( Data , index ):
+  lRet = []      
+  for j in Data:
+    for i in j.StarCounts: 
+      lRet.append( i.TpmUnstranded[ index ] )
+  return lRet
+# ======================================================================================================
+  
 
-  wb = Workbook()
-  wb.remove_sheet( wb.active ) # Delete default sheet
 
+# ======================================================================================================
+def Finally():
   for lDiseaseType , lCases in tqdm.tqdm( sorted( lCases2.items() ) , ncols=Ncol , desc="Analysing" ):
     lMut , lWt = lCases[0] , lCases[1]
     if len( lMut ) == 0 or len( lWt ) == 0 : continue
 
-    ws = wb.create_sheet( lDiseaseType )
-    ws.append( [ "Gene" , "Gene-type" , "Mut-count" , "Mut-mean" , "Mut-var" , "WT-count" , "WT-mean" , "WT-var" , "Mut mean/WT mean" , "log_1.5(ratio)" , "t-score" , "p-value" , "neg log_10(p-value)\n" ] ) # Write headers
-        
-    for GeneName , Gene in tqdm.tqdm( StarCounts.GeneCatalogue.items() , leave=False , ncols=Ncol , desc = lDiseaseType ):
+    # HeaderFn( lDiseaseType )
+    
+    for GeneName , Gene in tqdm.tqdm( sorted( StarCounts.GeneCatalogue.items() ) , leave=False , ncols=Ncol , desc = lDiseaseType ):
       if Gene.type != "protein_coding" : continue
 
-      lMut2 = []      
-      for j in lMut:
-        for i in j.StarCounts: 
-          lMut2.append( i.TpmUnstranded[ Gene.index ] )
-      num0 , mean0 , var0 = len( lMut2 ) , mean( lMut2 ) , var( lMut2 )               # Calculate the mean and variance of the muts
-      if mean0 == 0 : continue
+      lRet = GdcStatistics( Flatten( lMut , Gene.index ) , Flatten( lWt , Gene.index ) )
+      if lRet is None : continue
+      print( lRet[ "test" , "test.test" ] )
+
       
-      lWt2 = []
-      for j in lWt:
-        for i in j.StarCounts: 
-          lWt2.append( i.TpmUnstranded[ Gene.index ] )
-      num1 , mean1 , var1 = len( lWt2 )  , mean( lWt2 )  , var( lWt2 )               # Calculate the mean and variance of the WTs
-      if mean1 == 0 : continue
-
-      meanratio = mean0 / mean1     
-      t01, p01 = ttest_ind( lMut2 , lWt2 , equal_var = False ) # Calculate the t-score between each pair of lists
-
-      ws.append( [ GeneName , Gene.type , num0 , mean0 , var0 , num1 , mean1 , var1 , meanratio , log10( meanratio ) / log10( 1.5 ) , t01 , p01 , -log10(p01) ] )
-
-  wb.save( args.dest )      
+      # OutputFn( lDiseaseType , GeneName , Gene.type , GdcStatistics( Flatten( lMut , Gene.index ) , Flatten( lWt , Gene.index ) ))   
 # ======================================================================================================
 
+# ======================================================================================================
+def HeaderTsv( DiseaseType ): pass
 
+def OutputTsv( DiseaseType , GeneName , GeneType , aStats ):
+  dest.write( f"{DiseaseType}\t{GeneName}\t{GeneType}\t" )
+  # dest.write( f"{aStats.mut.count}\t{aStats.mut.mean}\t{aStats.mut.mean_error}\t{aStats.mut.sd}\t" )
+  # dest.write( f"{aStats.wt.count }\t{aStats.wt.mean }\t{aStats.wt.mean_error }\t{aStats.wt.sd}\t" )
+  dest.write( f"{aStats.mean_ratio[0]}\t{Ret.mean_ratio[1]}\t")
+  dest.write( f"{aStats.log_mean_ratio[0]}\t{aStats.log_mean_ratio[1]}\t" )
+  dest.write( f"{aStats.tscore}\t{aStats.pvalue}\t{aStats.neg_log_pvalue}\n" )
+# ======================================================================================================
+
+# ======================================================================================================
+def HeaderXlsx( DiseaseType ):
+  global ws
+  ws = wb.create_sheet( DiseaseType )
+  ws.append( [ "Gene" , "Gene-type" , "Mut-count" , "Mut-mean" , "Mut-mean-error" , "Mut-std.dev" , "WT-count" , "WT-mean" , "WT-mean-error" , "WT-std.dev" , "Mut mean/WT mean" , "log_1.5(ratio)" , "t-score" , "p-value" , "neg log_10(p-value)\n" ] ) # Write headers
+
+def OutputXlsx( DiseaseType , GeneName , GeneType , aStats ):
+  if aStats is None: return
+  ws.append( [ GeneName , GeneType , 
+                # aStats.mut.count , aStats.mut.mean , aStats.mut.mean_error , aStats.mut.sd , 
+                # aStats.wt.count  , aStats.wt.mean  , aStats.wt.mean_error  , aStats.wt.sd , 
+                # aStats.mean_ratio[0] , Ret.mean_ratio[1] , 
+                aStats.log_mean_ratio[0] , aStats.log_mean_ratio[1] , 
+                aStats.tscore , aStats.pvalue , aStats.neg_log_pvalue ] )
+# ======================================================================================================
 
 # ======================================================================================================
 if len( args.mutations ) != 1 : raise Exception( "Exactly 1 mutation must be specified on the commandline" )
 MutationOfInterest , lCases2 = args.mutations[0] , {}         
 
-with open( args.dest , "w" ) as dest: pass
-
-
-
-# if args.dest.endswith( ".tsv" ):
-# LoadAndForEach( args.src , Analyze , After = FinallyTsv ) # Load src and analyze on-the-fly, making use of the optional After function
-# else:
-LoadAndForEach( args.src , Analyze , After = FinallyXlsx ) # Load src and analyze on-the-fly, making use of the optional After function
+if args.dest.endswith( ".tsv" ):
+  with open( args.dest , "w" ) as dest:
+    dest.write( f"Disease-type\tGene\tGene-type\t" )
+    dest.write( f"Mut-count\tMut-mean\tMut-mean-error\tMut-std.dev\t" )
+    dest.write( f"WT-count\tWT-mean\tWT-mean-error\tWT-std.dev\t" )
+    dest.write( f"Mut mean/WT mean\t" )
+    dest.write( f"log_1.5(ratio)\t" )
+    dest.write( f"t-score\tp-value\tneg log_10(p-value)\n" ) # Write headers  
+    HeaderFn , OutputFn = HeaderTsv , OutputTsv
+    LoadAndForEach( args.src , SortByDisease , After = Finally ) # Load src and analyze on-the-fly, making use of the optional After function
+else:
+  with open( args.dest , "w" ) as dest: pass
+  HeaderFn , OutputFn = HeaderXlsx , OutputXlsx
+  wb , ws = Workbook() , None
+  wb.remove_sheet( wb.active ) # Delete default sheet
+  LoadAndForEach( args.src , SortByDisease , After = Finally ) # Load src and analyze on-the-fly, making use of the optional After function
+  wb.save( args.dest )    
+  
 # ======================================================================================================
-
-
-
-
   

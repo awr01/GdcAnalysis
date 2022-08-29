@@ -77,8 +77,7 @@ class Case:
   def FormattedAge( self ):
     years = int( self.AgeAtDiagnosis / 365.25 )
     days = int( self.AgeAtDiagnosis - ( 365.25 * years ) )
-    return f"{years:02}|{days:03}"
-    
+    return f"{years:02}|{days:03}"    
 # ======================================================================================================
 
 
