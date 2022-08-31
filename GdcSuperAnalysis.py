@@ -3,6 +3,7 @@ from GdcUtils import *
 from scipy.stats import ttest_ind
 from numpy import mean , var , log10 , warnings
 from operator import itemgetter
+import os , hashlib , bz2 , _pickle
 warnings.filterwarnings('ignore')
 
 # ======================================================================================================
@@ -42,18 +43,33 @@ def Finally():
     logmeanratio = log10( meanratio ) / log10( 1.5 ) 
     logpvalue = -log10(pvalue)
     
-    dest.write( f"{DiseaseType}\t{MutationOfInterest}\t{GeneName}\t{GeneType}\t{meanratio}\t{logmeanratio}\t{tscore}\t{pvalue}\t{logpvalue}\n" )
+    dest.write( f"{MutationOfInterest}\t{GeneName}\t{GeneType}\t{meanratio}\t{logmeanratio}\t{tscore}\t{pvalue}\t{logpvalue}\n" )
 # ======================================================================================================
 
 
 
-with open( args.dest , "w" ) as dest:
-  dest.write( f"Disease-type\tMutation\tGene\tGene-type\tMut mean/WT mean\tlog_1.5(ratio)\tt-score\tp-value\tneg. log_10(p-value)\n" ) # Write headers
 
-  lCases2 = {}
-  LoadAndForEach( args.src , SortByDisease )
+# ======================================================================================================
+lParams = hashlib.md5( str( f"SuperAnalysis-{args.src}" ).encode('utf-8') ).hexdigest()
+lFile = f".cache/{lParams}.pkl.bz2"
 
-  for DiseaseType , lCases in tqdm.tqdm( sorted( lCases2.items() ) , ncols=Ncol , desc="Analysing" ):
+lCases2 = {}
+# if os.path.isfile( lFile ):
+  # print( "Loading cache" , flush=True )
+  # with bz2.BZ2File( lFile , 'r' ) as src: lCases2 = _pickle.load( src )
+# else:
+LoadAndForEach( args.src , SortByDisease )
+  # print( "Saving cache" , flush=True )
+# with bz2.BZ2File( lFile , 'w' ) as dest: _pickle.dump( lCases2 , dest )
+
+
+for DiseaseType , lCases in tqdm.tqdm( sorted( lCases2.items() ) , ncols=Ncol , desc="Analysing" ):
+  lFile =  f"SuperAnalysis.{DiseaseType}.tsv"
+  
+  if os.path.isfile( lFile ): continue  
+  
+  with open( lFile , "w" ) as dest:
+    dest.write( f"Mutation\tGene\tGene-type\tMut mean/WT mean\tlog_1.5(ratio)\tt-score\tp-value\tneg. log_10(p-value)\n" ) # Write headers
     
     Mutations = {}
     for lCase in lCases:
@@ -69,3 +85,5 @@ with open( args.dest , "w" ) as dest:
       Genes = [ ( [],[] ) for i in StarCounts.GeneCatalogue ]      
       for lCase in lCases : Analyze( lCase )  
       Finally()
+# ======================================================================================================
+      
