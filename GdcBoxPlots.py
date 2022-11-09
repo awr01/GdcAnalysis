@@ -32,6 +32,7 @@ DiseaseTypeLut = {
   "Sarcoma" : "Sarcoma" ,
   "Glioblastoma Multiforme" : "Glioblastoma Multiforme" ,
   "Pheochromocytoma and Paraganglioma" : "Pheochromocytoma\n& Paraganglioma" ,
+  "Neuroblastoma" : "Neuroblastoma" ,
   "Uterine Corpus Endometrial Carcinoma" : "Uterine Corpus\nEndometrial Carcinoma" ,
   "Ovarian Serous Cystadenocarcinoma" : "Ovarian Serous\nCystadenocarcinoma" ,
   "Breast Invasive Carcinoma" : "Breast Invasive Carcinoma" ,
@@ -57,27 +58,22 @@ def Finally():
   lCasesByDisease2 = {}
   for lDiseaseType , lCases in lCasesByDisease.items():
     lMut , lWt =  Flatten( lCases[0] , DRG2 ) , Flatten( lCases[1] , DRG2 ) 
-    if len( lMut ) > 5 and len( lWt ) > 5 : lCasesByDisease2[ lDiseaseType ] = ( [ lMut , lWt ] , GdcStatistics( lMut , lWt ) )
+    lCasesByDisease2[ lDiseaseType ] = ( [ lMut , lWt ] , GdcStatistics( lMut , lWt ) )
 
   # Create the canvas
   fig = plt.gcf()
   ncols = 6
-  nrows = int( np.ceil( len( lCasesByDisease2 ) / ncols ) )
+  nrows = int( np.ceil( len( DiseaseTypeLut ) / ncols ) )
   fig , axs = plt.subplots( nrows , ncols , sharey=True )
   plt.yscale( "log" )
 
-  # Fill the plots
-  lCasesByDisease2 = { i : j for i,j in sorted( lCasesByDisease2.items(), key=lambda Iter : Iter[1][1].pvalue ) }
-  
-  for lDiseaseIt , ax1 in zip( lCasesByDisease2.items() , fig.axes ):
-    lDiseaseType , lDataStats = lDiseaseIt
-    lData , lStats = lDataStats
-    
+  # Fill the plots 
+  for lDiseaseType , ax1 in zip( DiseaseTypeLut , fig.axes ):
+    lData , lStats = lCasesByDisease2[ lDiseaseType ] 
     ax1.set_xlabel( DiseaseTypeLut[ lDiseaseType ] , style='italic' , labelpad=1 )
     ax1.set_ylim( 0 , 100 )
     box1 = ax1.boxplot( lData , labels= ["$Mutant$" , "$Wild-type$"] , widths= 0.8 , whis=False , showfliers=False , showmeans=True , meanprops=dict(color="grey"), meanline=True, medianprops=dict(color="black") )    
     for i in range( 2 ): ax1.scatter( np.random.normal( i+1 , 0.05 , len( lData[i] ) ) , lData[i] , color=[ "r" , "b" ][i] , alpha=0.5 , s=1 )
-
     ax1.text( 0.6 , 50 , f'$N_{{Mutant}} = {len(lData[0])}$\n$N_{{Wild-type}} = {len(lData[1])}$\n$p_{{value}}={lStats.pvalue:.2e}$' , fontsize="x-small" )
 
   # Blank the remaining subplots
