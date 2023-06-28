@@ -34,17 +34,16 @@ def Finally():
     lMut , lWt = lCases[0] , lCases[1]
     if len( lMut ) == 0 or len( lWt ) == 0 : continue
 
-    # HeaderFn( lDiseaseType )
+    HeaderFn( lDiseaseType )
     
     for GeneName , Gene in tqdm.tqdm( sorted( StarCounts.GeneCatalogue.items() ) , leave=False , ncols=Ncol , desc = lDiseaseType ):
       if Gene.type != "protein_coding" : continue
 
       lRet = GdcStatistics( Flatten( lMut , Gene.index ) , Flatten( lWt , Gene.index ) )
       if lRet is None : continue
-      print( lRet[ "test" , "test.test" ] )
+      # print( lRet[ "test" , "test.test" ] )
 
-      
-      # OutputFn( lDiseaseType , GeneName , Gene.type , GdcStatistics( Flatten( lMut , Gene.index ) , Flatten( lWt , Gene.index ) ))   
+      OutputFn( lDiseaseType , GeneName , Gene.type , GdcStatistics( Flatten( lMut , Gene.index ) , Flatten( lWt , Gene.index ) ))   
 # ======================================================================================================
 
 # ======================================================================================================
@@ -54,8 +53,8 @@ def OutputTsv( DiseaseType , GeneName , GeneType , aStats ):
   dest.write( f"{DiseaseType}\t{GeneName}\t{GeneType}\t" )
   # dest.write( f"{aStats.mut.count}\t{aStats.mut.mean}\t{aStats.mut.mean_error}\t{aStats.mut.sd}\t" )
   # dest.write( f"{aStats.wt.count }\t{aStats.wt.mean }\t{aStats.wt.mean_error }\t{aStats.wt.sd}\t" )
-  dest.write( f"{aStats.mean_ratio[0]}\t{Ret.mean_ratio[1]}\t")
-  dest.write( f"{aStats.log_mean_ratio[0]}\t{aStats.log_mean_ratio[1]}\t" )
+  dest.write( f"{aStats.mean_ratio_with_error[0]}\t{aStats.mean_ratio_with_error[1]}\t")
+  dest.write( f"{aStats.log_mean_ratio_with_error[0]}\t{aStats.log_mean_ratio_with_error[1]}\t" )
   dest.write( f"{aStats.tscore}\t{aStats.pvalue}\t{aStats.neg_log_pvalue}\n" )
 # ======================================================================================================
 
@@ -70,8 +69,8 @@ def OutputXlsx( DiseaseType , GeneName , GeneType , aStats ):
   ws.append( [ GeneName , GeneType , 
                 # aStats.mut.count , aStats.mut.mean , aStats.mut.mean_error , aStats.mut.sd , 
                 # aStats.wt.count  , aStats.wt.mean  , aStats.wt.mean_error  , aStats.wt.sd , 
-                # aStats.mean_ratio[0] , Ret.mean_ratio[1] , 
-                aStats.log_mean_ratio[0] , aStats.log_mean_ratio[1] , 
+                aStats.mean_ratio_with_error[0] , aStats.mean_ratio_with_error[1] , 
+                aStats.log_mean_ratio_with_error[0] , aStats.log_mean_ratio_with_error[1] , 
                 aStats.tscore , aStats.pvalue , aStats.neg_log_pvalue ] )
 # ======================================================================================================
 
@@ -82,8 +81,8 @@ MutationOfInterest , lCases2 = args.mutations[0] , {}
 if args.dest.endswith( ".tsv" ):
   with open( args.dest , "w" ) as dest:
     dest.write( f"Disease-type\tGene\tGene-type\t" )
-    dest.write( f"Mut-count\tMut-mean\tMut-mean-error\tMut-std.dev\t" )
-    dest.write( f"WT-count\tWT-mean\tWT-mean-error\tWT-std.dev\t" )
+    # dest.write( f"Mut-count\tMut-mean\tMut-mean-error\tMut-std.dev\t" )
+    # dest.write( f"WT-count\tWT-mean\tWT-mean-error\tWT-std.dev\t" )
     dest.write( f"Mut mean/WT mean\t" )
     dest.write( f"log_1.5(ratio)\t" )
     dest.write( f"t-score\tp-value\tneg log_10(p-value)\n" ) # Write headers  

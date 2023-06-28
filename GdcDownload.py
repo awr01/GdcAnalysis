@@ -53,9 +53,9 @@ def CachedGetTar( aKeys ):
   lFile = f".cache/{lKeys}.tgz"
 
   if os.path.isfile( lFile ): 
-    print( " Using cached!" , end = "" , flush=True )  
+    print( f" Cached: {lFile}" , end = "" , flush=True )  
   else:
-    print( " Downloading!" , end = "" , flush=True )
+    print( f" Download: {lFile}" , end = "" , flush=True )
     lResponse = requests.post( "https://api.gdc.cancer.gov/data" , data = json.dumps( { "ids":aKeys } ) , headers = { "Content-Type" : "application/json" } )
     if not lResponse.status_code in [ 200 , 203 ] : raise Exception( f"Requests returned status-code {lResponse.status_code}" )  
     with open( lFile , "wb" ) as dest: dest.write( lResponse.content )
@@ -95,8 +95,8 @@ def AddRnaSeqFileToCase( aCase , aFile ):
 # ======================================================================================================
 print( "Creating Cases" , flush=True )
 lInfo = [ "cases.case_id" , "cases.diagnoses.age_at_diagnosis" , "cases.project.disease_type" , "experimental_strategy" ]       
-lFileInfo = GetJson( Or( And( Eq( "cases.project.project_id" , "TCGA-LGG" ), Eq( "files.experimental_strategy" , "RNA-Seq" ), Eq( "files.analysis.workflow_type" , "STAR - Counts"), Eq( "files.data_type" , "Gene Expression Quantification"), Eq( "files.access" , "open") ) ,       
-                         And( Eq( "cases.project.project_id" , "TCGA-LGG" ), Eq( "files.experimental_strategy" , "WXS" ), Eq( "files.access" , "open") ) ) , lInfo )
+lFileInfo = GetJson( Or( And( Eq( "files.experimental_strategy" , "RNA-Seq" ), Eq( "files.analysis.workflow_type" , "STAR - Counts"), Eq( "files.data_type" , "Gene Expression Quantification"), Eq( "files.access" , "open") ) ,       
+                         And( Eq( "files.experimental_strategy" , "WXS" ), Eq( "files.access" , "open") ) ) , lInfo )
 
 lCases = {}
 
@@ -143,7 +143,7 @@ for lCaseId , lCase in tqdm.tqdm( lCases.items() , ncols=Ncol , desc="Getting Da
   
   if len( lFileIds ) > 50:
     lTar = CachedGetTar( list( lFileIds.keys() ) )
-    
+  
     for lName in tqdm.tqdm( lTar.getmembers(), leave=False , ncols=Ncol ):                                    # Iterate over the files in the tarball
       if lName.name == "MANIFEST.txt": continue
       if lName.name.startswith( "superseded" ): 
@@ -155,7 +155,7 @@ for lCaseId , lCase in tqdm.tqdm( lCases.items() , ncols=Ncol , desc="Getting Da
       lData = lTar.extractfile( lName )
       if lStrategy == 0 : AddWxsFileToCase(    lCase , lData )
       else:               AddRnaSeqFileToCase( lCase , lData )
-  
+      
     lTar.close()
     
     for i in lFileIds.values() :
