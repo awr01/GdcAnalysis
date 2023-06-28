@@ -21,6 +21,11 @@ where the `NIH_GDC_dataset.tgz` can be any valid filename. This will take ~3 hou
 
 The downloader keeps a cache in the `.cache` folder in case it is interrupted. If an error occurs on a cached operation, you can try deleting the cached file being used, or failing that, the entire `.cache` folder.
 
+## Run the co-mutation analysis
+```
+python GdcAnalysis.py --src NIH_GDC_dataset.tgz --dest Analysis.tsv --mutations ATRX
+```
+
 ## Run the DRG2 box-plot analysis
 ```
 python GdcBoxPlots.py --src NIH_GDC_dataset.tgz --dest DUMMY.tsv --mutations ATRX
