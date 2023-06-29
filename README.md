@@ -25,6 +25,11 @@ The downloader keeps a cache in the `.cache` folder in case it is interrupted. I
 ```
 python GdcAnalysis.py --src NIH_GDC_dataset.tgz --dest Analysis.tsv --mutations ATRX
 ```
+or
+```
+python GdcAnalysis.py --src NIH_GDC_dataset.tgz --dest Analysis.xlsx --mutations ATRX
+```
+This produces a tab-delimited text file or Microsoft Excel spreadsheet with the co-mutation statistics for different cancer-types.
 
 ## Run the DRG2 box-plot analysis
 ```
