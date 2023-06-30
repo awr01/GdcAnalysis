@@ -35,7 +35,7 @@ This produces a tab-delimited text file or Microsoft Excel spreadsheet with the 
 ```
 python GdcVolcano.py --src NIH_GDC_dataset.tgz --dest DUMMY.tsv --mutations ATRX
 ```
-This produces volcano plots of the statistical significance vs. the log1.5(fold-ratio) in different cancer-types, specifically highlighting DRG2, saved to the file `DRG2-volcano.pdf`.
+This produces volcano plots of the statistical significance of star-counts vs. the log1.5(fold-ratio) of ATRX mutant over ATRX wild-type in different cancer-types, specifically highlighting DRG2, saved to the file `DRG2-volcano.pdf`.
 
 ## Run the DRG2 box-plot analysis
 ```
