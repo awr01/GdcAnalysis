@@ -31,8 +31,14 @@ python GdcAnalysis.py --src NIH_GDC_dataset.tgz --dest Analysis.xlsx --mutations
 ```
 This produces a tab-delimited text file or Microsoft Excel spreadsheet with the co-mutation statistics for different cancer-types.
 
+## Run the volcano plot analysis, highlighting DRG2
+```
+python GdcVolcano.py --src NIH_GDC_dataset.tgz --dest DUMMY.tsv --mutations ATRX
+```
+This produces volcano plots of the statistical significance vs. the log1.5(fold-ratio) in different cancer-types, specifically highlighting DRG2, saved to the file `DRG2-volcano.pdf`.
+
 ## Run the DRG2 box-plot analysis
 ```
 python GdcBoxPlots.py --src NIH_GDC_dataset.tgz --dest DUMMY.tsv --mutations ATRX
 ```
-This produces combined scatter and box+whisker plots of the DRG2 star-counts for ATRX mutant vs ATRX wild-type in different cancer-types saved to the file DRG2.pdf.
+This produces combined scatter and box+whisker plots of the DRG2 star-counts for ATRX mutant vs ATRX wild-type in different cancer-types saved to the file `DRG2-boxplot.pdf`.
