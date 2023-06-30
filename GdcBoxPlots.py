@@ -29,6 +29,7 @@ def Flatten( Data , index ):
 
 DiseaseTypeLut = {
   "Brain Lower Grade Glioma" : "Brain Lower\nGrade Glioma" ,
+  "Osteosarcoma" : "Osteosarcoma" ,
   "Sarcoma" : "Sarcoma" ,
   "Glioblastoma Multiforme" : "Glioblastoma Multiforme" ,
   "Pheochromocytoma and Paraganglioma" : "Pheochromocytoma\n& Paraganglioma" ,
@@ -62,9 +63,8 @@ def Finally():
 
   # Create the canvas
   fig = plt.gcf()
-  ncols = 6
-  nrows = int( np.ceil( len( DiseaseTypeLut ) / ncols ) )
-  fig , axs = plt.subplots( nrows , ncols , sharey=True )
+  fig , axs = plt.subplots( 5 , 4 , sharey=True )
+  for x in axs.flat[len(DiseaseTypeLut):]: x.set_visible( False )  
   plt.yscale( "log" )
 
   # Fill the plots 
@@ -85,10 +85,10 @@ def Finally():
   plt.ylabel( "TPM-unstranded" , style='italic' )
     
   # Draw the images
-  fig.set_size_inches( 16 , 4*nrows )
+  fig.set_size_inches( 16 , 20 )
   plt.tight_layout()
   fig.subplots_adjust( hspace = 0.2 , wspace = 0.0 )
-  plt.savefig( 'DRG2.pdf' )  
+  plt.savefig( 'DRG2-boxplot.pdf' )  
 # ======================================================================================================
 
 
