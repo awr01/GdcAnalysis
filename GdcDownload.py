@@ -60,9 +60,33 @@ def CachedGetTar( aKeys ):
     if not lResponse.status_code in [ 200 , 203 ] : raise Exception( f"Requests returned status-code {lResponse.status_code}" )  
     with open( lFile , "wb" ) as dest: dest.write( lResponse.content )
           
-  src = tarfile.open( lFile , mode='r:gz' )
-  return src
+  return lFile
 # ======================================================================================================
+
+# ======================================================================================================
+def DownloadFileIds( lFileIds ):
+  lTar = CachedGetTar( list( lFileIds.keys() ) )
+  lTar = tarfile.open( lTar , mode='r:gz' )
+
+  for lName in tqdm.tqdm( lTar.getmembers(), leave=False , ncols=Ncol ): # Iterate over the files in the tarball
+    if lName.name == "MANIFEST.txt": continue
+    if lName.name.startswith( "superseded" ): 
+      #lSuperceded.extend( lTar.extractfile( lName ).lines() )
+      continue
+      
+    lFileId , _ = lName.name.split( "/" , maxsplit=1 )
+    lCase , lStrategy  = lFileIds[ lFileId ]
+    lData = lTar.extractfile( lName )
+    if lStrategy == 0 : AddWxsFileToCase(    lCase , lData )
+    else:               AddRnaSeqFileToCase( lCase , lData )
+    
+  lTar.close()
+  
+  for i in lFileIds.values() :
+    for lGene , lMutation in i[0].Mutations.items():
+      lMutation.classify()
+# ======================================================================================================
+
 
 # ======================================================================================================
 def AddWxsFileToCase( aCase , aFile ):  
@@ -147,28 +171,12 @@ for lCaseId , lCase in tqdm.tqdm( lCases.items() , ncols=Ncol , desc="Getting Da
   for lFileId in lCase.RnaSeqFileIds : lFileIds[ lFileId ] = ( lCase , 1 ) 
   delattr( lCase , "RnaSeqFileIds" )
   
-  if len( lFileIds ) > 0: #50:
-    lTar = CachedGetTar( list( lFileIds.keys() ) )
-  
-    for lName in tqdm.tqdm( lTar.getmembers(), leave=False , ncols=Ncol ):                                    # Iterate over the files in the tarball
-      if lName.name == "MANIFEST.txt": continue
-      if lName.name.startswith( "superseded" ): 
-        #lSuperceded.extend( lTar.extractfile( lName ).lines() )
-        continue
-        
-      lFileId , _ = lName.name.split( "/" , maxsplit=1 )
-      lCase , lStrategy  = lFileIds[ lFileId ]
-      lData = lTar.extractfile( lName )
-      if lStrategy == 0 : AddWxsFileToCase(    lCase , lData )
-      else:               AddRnaSeqFileToCase( lCase , lData )
-      
-    lTar.close()
-    
-    for i in lFileIds.values() :
-      for lGene , lMutation in i[0].Mutations.items():
-        lMutation.classify()
-    
+  if len( lFileIds ) > 50:
+    DownloadFileIds( lFileIds )    
     lFileIds = {} 
+else:
+  DownloadFileIds( lFileIds )    
+  lFileIds = {} 
 
 lExisting.extend( list( lCases.values() ) )
     
