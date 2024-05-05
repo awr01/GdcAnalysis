@@ -98,13 +98,21 @@ lInfo = [ "cases.case_id" , "cases.diagnoses.age_at_diagnosis" , "cases.project.
 lFileInfo = GetJson( Or( And( Eq( "files.experimental_strategy" , "RNA-Seq" ), Eq( "files.analysis.workflow_type" , "STAR - Counts"), Eq( "files.data_type" , "Gene Expression Quantification"), Eq( "files.access" , "open") ) ,       
                          And( Eq( "files.experimental_strategy" , "WXS" ), Eq( "files.access" , "open") ) ) , lInfo )
 
+if os.path.isfile( args.dest ): lExisting = LoadCases( args.dest )
+else:                           lExisting = []
+lExistingIds = [ i.CaseId for i in lExisting ]
+
+print( len( lExisting ) )
+
 lCases = {}
 
 for j in tqdm.tqdm( lFileInfo , ncols=Ncol , desc="Collating available Data" ):  
   CaseId = j["cases"][0]["case_id"]
   FileId = j["id"]
   ExperimentalStrategy = j["experimental_strategy"]
-    
+  
+  if CaseId in lExistingIds : continue
+
   if not CaseId in lCases:    
     try :    
       DiseaseType    = j["cases"][0]["project"]["disease_type"] 
@@ -124,12 +132,9 @@ for j in tqdm.tqdm( lFileInfo , ncols=Ncol , desc="Collating available Data" ):
   else:                              lCase.RnaSeqFileIds.append( FileId )
 
 
-
-
 for lCaseId in tqdm.tqdm( list(lCases.keys()) , ncols=Ncol , desc="Filtering" ):
   lCase = lCases[ lCaseId ]
   if len( lCase.WxsFileIds ) == 0 or len( lCase.RnaSeqFileIds ) == 0:  del lCases[ lCaseId ]
-
 
 
 #lSuperceded = []
@@ -141,7 +146,7 @@ for lCaseId , lCase in tqdm.tqdm( lCases.items() , ncols=Ncol , desc="Getting Da
   for lFileId in lCase.RnaSeqFileIds : lFileIds[ lFileId ] = ( lCase , 1 ) 
   delattr( lCase , "RnaSeqFileIds" )
   
-  if len( lFileIds ) > 50:
+  if len( lFileIds ) > 0: #50:
     lTar = CachedGetTar( list( lFileIds.keys() ) )
   
     for lName in tqdm.tqdm( lTar.getmembers(), leave=False , ncols=Ncol ):                                    # Iterate over the files in the tarball
@@ -163,6 +168,8 @@ for lCaseId , lCase in tqdm.tqdm( lCases.items() , ncols=Ncol , desc="Getting Da
         lMutation.classify()
     
     lFileIds = {} 
+
+lExisting.extend( list( lCases.values() ) )
     
-SaveCases( args.dest , lCases )
+SaveCases( args.dest , lExisting )
 # ======================================================================================================
