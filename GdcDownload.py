@@ -114,12 +114,13 @@ for j in tqdm.tqdm( lFileInfo , ncols=Ncol , desc="Collating available Data" ):
   if CaseId in lExistingIds : continue
 
   if not CaseId in lCases:    
-    try :    
-      DiseaseType    = j["cases"][0]["project"]["disease_type"] 
-      AgeAtDiagnosis = int( j["cases"][0]["diagnoses"][0]["age_at_diagnosis"] )       
-    except : 
-      continue # Ignore cases without this info  
-        
+
+    try :    DiseaseType    = j["cases"][0]["project"]["disease_type"] 
+    except : DiseaseType    = "Unspecified" 
+
+    try :    AgeAtDiagnosis = int( j["cases"][0]["diagnoses"][0]["age_at_diagnosis"] )       
+    except : AgeAtDiagnosis = float("NAN")
+
     lCase = Case( CaseId , AgeAtDiagnosis , DiseaseType )
     setattr( lCase , "WxsFileIds" , [] )
     setattr( lCase , "RnaSeqFileIds" , [] )
