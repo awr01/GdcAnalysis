@@ -100,7 +100,7 @@ def SaveCases( aFilename , aCases ):
 def LoadCases( aFilename ):
   lCases = []
   print( f"Opening '{aFilename}'" , flush=True )
-  with tarfile.open( aFilename , mode='r:gz' ) as src:
+  with tarfile.open( aFilename , mode = 'r:gz' if aFilename.endswith( ".tgz" ) else 'r' ) as src:
     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
 
     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Loading cases" ):
@@ -110,9 +110,22 @@ def LoadCases( aFilename ):
 # ======================================================================================================
 
 # ======================================================================================================
+def LoadCases( aFilename , aCaseIds ):
+  lCases = []
+  with tarfile.open( aFilename , mode = 'r:gz' if aFilename.endswith( ".tgz" ) else 'r' ) as src:
+    StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
+
+    for lName in tqdm.tqdm( aCaseIds , leave=False , ncols=Ncol , desc="Loading cases" ):
+      lCases.append( _pickle.loads( src.extractfile( lName ).read() ) )
+      
+  return lCases
+# ======================================================================================================
+
+# ======================================================================================================
 def LoadAndForEach( aFilename , aFn , Before = None , After = None ):
   print( f"Opening '{aFilename}'" , flush=True )
-  with tarfile.open( aFilename , mode='r:gz' ) as src:
+
+  with tarfile.open( aFilename , mode = 'r:gz' if aFilename.endswith( ".tgz" ) else 'r' ) as src:
     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
     if not Before is None:  Before()    
     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Load and analyze" ):
