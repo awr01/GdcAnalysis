@@ -2,6 +2,7 @@
 *.bz
 *.bz2
 *.tgz
+*.tar
 *.tar.gz
 *.zip
 *.tsv
