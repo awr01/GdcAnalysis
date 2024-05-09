@@ -8,7 +8,7 @@ utf8reader = codecs.getreader( 'utf-8' )
 parser = argparse.ArgumentParser()
 parser.add_argument( '--dest' , required=True , help='The destination tgz file')
 args = parser.parse_args()
-if not args.dest.endswith( ".tgz" ): raise Exception( "Destination file must have '.tgz' file-extension" )
+if not args.dest.endswith( ".tar" ): raise Exception( "Destination file must have '.tar' file-extension" )
 
 
 if not os.path.isdir( ".cache" ): os.mkdir( ".cache" )
@@ -162,7 +162,6 @@ for lCaseId in tqdm.tqdm( list(lCases.keys()) , ncols=Ncol , desc="Filtering" ):
   if len( lCase.WxsFileIds ) == 0 or len( lCase.RnaSeqFileIds ) == 0:  del lCases[ lCaseId ]
 
 
-#lSuperceded = []
 lFileIds = {}
 for lCaseId , lCase in tqdm.tqdm( lCases.items() , ncols=Ncol , desc="Getting Data" ):
   for lFileId in lCase.WxsFileIds :    lFileIds[ lFileId ] = ( lCase , 0 )
@@ -177,8 +176,6 @@ for lCaseId , lCase in tqdm.tqdm( lCases.items() , ncols=Ncol , desc="Getting Da
 else:
   DownloadFileIds( lFileIds )    
   lFileIds = {} 
-
-lExisting.extend( list( lCases.values() ) )
     
-SaveCases( args.dest , lExisting )
+SaveCases( args.dest , lCases.values() 
 # ======================================================================================================

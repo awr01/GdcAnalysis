@@ -14,7 +14,7 @@ parser.add_argument( '--mutation-file' , help='Mutations of interest')
 
 args = parser.parse_args()
 
-if not ( args.src .endswith( ".tgz" ) or args.src .endswith( ".tar"  ) ): raise Exception( "Source file must have '.tar' or '.tgz' file-extension" )
+if not args.src .endswith( ".tar"  ): raise Exception( "Source file must have '.tar' file-extension" )
 if not ( args.dest.endswith( ".tsv" ) or args.dest.endswith( ".xlsx" ) ): raise Exception( "Destination file must have '.tsv' or '.xlsx' file-extension" )
 
 if not args.gene_file is None:

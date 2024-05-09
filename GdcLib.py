@@ -90,7 +90,7 @@ def DumpToTar( dest , obj , name ):
   dest.addfile( lInfo , lData )
 
 def SaveCases( aFilename , aCases ):
-  with tarfile.open( aFilename , mode='w|gz' ) as dest:
+  with tarfile.open( aFilename , mode='a' ) as dest:
     DumpToTar( dest , StarCounts.GeneCatalogue , "@GeneCatalogue" )
     # for i,j in tqdm.tqdm( aCases.items() , ncols=Ncol , desc="Saving to disk" ): DumpToTar( dest , j , i )
     for i in tqdm.tqdm( aCases , ncols=Ncol , desc="Saving to disk" ): DumpToTar( dest , i , i.CaseId )
@@ -100,7 +100,7 @@ def SaveCases( aFilename , aCases ):
 def LoadCases( aFilename ):
   lCases = []
   print( f"Opening '{aFilename}'" , flush=True )
-  with tarfile.open( aFilename , mode = 'r:gz' if aFilename.endswith( ".tgz" ) else 'r' ) as src:
+  with tarfile.open( aFilename , mode = 'r' ) as src:
     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
 
     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Loading cases" ):
@@ -112,7 +112,7 @@ def LoadCases( aFilename ):
 # ======================================================================================================
 def LoadCases( aFilename , aCaseIds ):
   lCases = []
-  with tarfile.open( aFilename , mode = 'r:gz' if aFilename.endswith( ".tgz" ) else 'r' ) as src:
+  with tarfile.open( aFilename , mode = 'r' ) as src:
     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
 
     for lName in tqdm.tqdm( aCaseIds , leave=False , ncols=Ncol , desc="Loading cases" ):
@@ -125,7 +125,7 @@ def LoadCases( aFilename , aCaseIds ):
 def LoadAndForEach( aFilename , aFn , Before = None , After = None ):
   print( f"Opening '{aFilename}'" , flush=True )
 
-  with tarfile.open( aFilename , mode = 'r:gz' if aFilename.endswith( ".tgz" ) else 'r' ) as src:
+  with tarfile.open( aFilename , mode = 'r' ) as src:
     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
     if not Before is None:  Before()    
     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Load and analyze" ):
