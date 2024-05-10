@@ -1,4 +1,4 @@
-import tarfile, tqdm , io , _pickle
+import tarfile, tqdm , io , _pickle , multiprocessing
 
 Ncol = 150
 
@@ -96,39 +96,71 @@ def SaveCases( aFilename , aCases ):
     for i in tqdm.tqdm( aCases , ncols=Ncol , desc="Saving to disk" ): DumpToTar( dest , i , i.CaseId )
 # ======================================================================================================
 
-# ======================================================================================================
-def LoadCases( aFilename ):
-  lCases = []
-  print( f"Opening '{aFilename}'" , flush=True )
-  with tarfile.open( aFilename , mode = 'r' ) as src:
-    StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
+# # ======================================================================================================
+# def LoadCases( aFilename ):
+#   lCases = []
+#   print( f"Opening '{aFilename}'" , flush=True )
+#   with tarfile.open( aFilename , mode = 'r' ) as src:
+#     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
 
-    for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Loading cases" ):
-      if lName.name[0] != "@": lCases.append( _pickle.loads( src.extractfile( lName ).read() ) )
+#     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Loading cases" ):
+#       if lName.name[0] != "@": lCases.append( _pickle.loads( src.extractfile( lName ).read() ) )
       
-  return lCases
-# ======================================================================================================
+#   return lCases
+# # ======================================================================================================
 
-# ======================================================================================================
-def LoadCases( aFilename , aCaseIds ):
-  lCases = []
-  with tarfile.open( aFilename , mode = 'r' ) as src:
-    StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
+# # ======================================================================================================
+# def LoadCases( aFilename , aCaseIds ):
+#   lCases = []
+#   with tarfile.open( aFilename , mode = 'r' ) as src:
+#     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
 
-    for lName in tqdm.tqdm( aCaseIds , leave=False , ncols=Ncol , desc="Loading cases" ):
-      lCases.append( _pickle.loads( src.extractfile( lName ).read() ) )
+#     for lName in tqdm.tqdm( aCaseIds , leave=False , ncols=Ncol , desc="Loading cases" ):
+#       lCases.append( _pickle.loads( src.extractfile( lName ).read() ) )
       
-  return lCases
-# ======================================================================================================
+#   return lCases
+# # ======================================================================================================
+
+# # ======================================================================================================
+# def LoadAndForEach( aFilename , aFn , Before = None , After = None ):
+#   print( f"Opening '{aFilename}'" , flush=True )
+
+#   with tarfile.open( aFilename , mode = 'r' ) as src:
+#     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
+#     if not Before is None:  Before()    
+#     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Load and analyze" ):
+#       if lName.name[0] != "@" : aFn( _pickle.loads( src.extractfile( lName ).read() ) )      
+#     if not After is None:  After()
+# # ======================================================================================================
+
 
 # ======================================================================================================
-def LoadAndForEach( aFilename , aFn , Before = None , After = None ):
+def ClassifyHandler( Args ):
+  aFilename , ForEachClass , Class , Ids = Args
+  index = multiprocessing.current_process()._identity[0]
+  with tarfile.open( aFilename , mode = 'r' ) as src:    
+    Cases = [ _pickle.loads( src.extractfile( lName ).read() ) for lName in tqdm.tqdm( Ids , leave=False , ncols=Ncol , desc=f"{Class}: Loading cases" , position=index ) ]
+    return Class ,  ForEachClass( Class , Cases , index )
+
+def LoadAndClassify( aFilename , ClassifyFn , ForEachClassFn , FinallyFn ):
   print( f"Opening '{aFilename}'" , flush=True )
 
   with tarfile.open( aFilename , mode = 'r' ) as src:
     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
-    if not Before is None:  Before()    
-    for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Load and analyze" ):
-      if lName.name[0] != "@" : aFn( _pickle.loads( src.extractfile( lName ).read() ) )      
-    if not After is None:  After()
+
+    Classes = {}
+    for lName in tqdm.tqdm( src.getmembers() , leave=False , ncols=Ncol , desc="Load and classify" ):
+      if lName.name[0] == "@" : continue
+      Class = ClassifyFn( _pickle.loads( src.extractfile( lName ).read() ) )      
+      if Class in Classes: Classes[ Class ].append( lName )
+      else:                Classes[ Class ] = [ lName ] 
+    
+
+  with multiprocessing.Pool() as pool:
+    Data = {}
+    generator = pool.imap( ClassifyHandler , (( aFilename , ForEachClassFn , k , v ) for k,v in sorted( Classes.items()) ) ) # Bodgy hack to bypass the limitations of imap
+    for res in tqdm.tqdm( generator , ncols=Ncol, desc="Analysing", total=len(Classes) ): Data[ res[0] ] = res[1]
+
+  FinallyFn( Data )
+
 # ======================================================================================================
