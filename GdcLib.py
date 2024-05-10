@@ -143,13 +143,13 @@ def ClassifyHandler( Args ):
     return Class ,  ForEachClass( Class , Cases , index )
 
 def LoadAndClassify( aFilename , ClassifyFn , ForEachClassFn , FinallyFn , maxthreads=None):
-  print( f"Opening '{aFilename}'" , flush=True )
+  # print( f"Opening '{aFilename}'" , flush=True , end='\r' )
 
   with tarfile.open( aFilename , mode = 'r' ) as src:
     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
 
     Classes = {}
-    for lName in tqdm.tqdm( src.getmembers() , leave=False , ncols=Ncol , desc="Load and classify" ):
+    for lName in tqdm.tqdm( src.getmembers() , leave=False , ncols=Ncol , desc=f"Load and classify {aFilename}" ):
       if lName.name[0] == "@" : continue
       Class = ClassifyFn( _pickle.loads( src.extractfile( lName ).read() ) )      
       if Class in Classes: Classes[ Class ].append( lName )

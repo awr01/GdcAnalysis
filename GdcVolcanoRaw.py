@@ -44,19 +44,32 @@ def ForEachClass( Class , Cases , index ):
 
 # ======================================================================================================
 def DrawVolcanos( Data ):    
-  # Draw the plots
-  fig , axs = plt.subplots( 6 , 7 , sharey=True )
-  for x in axs.flat[len(Data):]: x.set_visible( False )  
-  for (lDiseaseType , lData) , ax1 in zip( Data.items() , fig.axes ):
-    if lData is None: continue
 
-    ax1.set_xlabel( lDiseaseType , style='italic' , labelpad=1 )
+  Data = {k:v for k, v in Data.items() if not v is None}
+  Data = {k:v for k, v in Data.items() if max( max( c[1] , default=0 ) for c in v ) > 1/200 } # Kill plots whose values won't show
+
+  n = len(Data)
+  a = int( np.ceil( np.sqrt( n ) ) )
+  b = int( np.ceil( n/a ) )
+
+  fig , axs = plt.subplots( b , a , sharey=True )
+  for x in axs.flat[n:]: x.set_visible( False )  
+
+  # Draw the plots
+  for (lDiseaseType , lData) , ax1 in zip( Data.items() , fig.axes ):
+    # ax1.set_xlabel( lDiseaseType , style='italic' , labelpad=1 )
     ax1.set_xlim( -25 , 25 )
     ax1.set_ylim( 1/200 , 200 )
     ax1.scatter( lData[1][0] , lData[1][1] , color="0.75" , s=1 )
     ax1.scatter( lData[2][0] , lData[2][1] , color="b" , s=1 )
     ax1.scatter( lData[0][0] , lData[0][1] , color="r" , s=1 )
     ax1.grid( True )
+
+    if len( lDiseaseType ) > 40 :
+      index = lDiseaseType.rfind( ' ' , 0 , 40 )
+      lDiseaseType = lDiseaseType[:index] + '\n' + lDiseaseType[index:]
+
+    ax1.text( -24 , 0.01 , lDiseaseType , fontsize="x-small" )
 
   plt.yscale( "log" )
 
