@@ -139,10 +139,10 @@ def ClassifyHandler( Args ):
   aFilename , ForEachClass , Class , Ids = Args
   index = multiprocessing.current_process()._identity[0]
   with tarfile.open( aFilename , mode = 'r' ) as src:    
-    Cases = [ _pickle.loads( src.extractfile( lName ).read() ) for lName in tqdm.tqdm( Ids , leave=False , ncols=Ncol , desc=f"{Class}: Loading cases" , position=index ) ]
+    Cases = [ _pickle.loads( src.extractfile( lName ).read() ) for lName in tqdm.tqdm( Ids , leave=False , ncols=Ncol , desc=f"{Class}: Loading" , position=index ) ]
     return Class ,  ForEachClass( Class , Cases , index )
 
-def LoadAndClassify( aFilename , ClassifyFn , ForEachClassFn , FinallyFn ):
+def LoadAndClassify( aFilename , ClassifyFn , ForEachClassFn , FinallyFn , maxthreads=None):
   print( f"Opening '{aFilename}'" , flush=True )
 
   with tarfile.open( aFilename , mode = 'r' ) as src:
@@ -155,8 +155,7 @@ def LoadAndClassify( aFilename , ClassifyFn , ForEachClassFn , FinallyFn ):
       if Class in Classes: Classes[ Class ].append( lName )
       else:                Classes[ Class ] = [ lName ] 
     
-
-  with multiprocessing.Pool() as pool:
+  with multiprocessing.Pool( maxthreads ) as pool:
     Data = {}
     generator = pool.imap( ClassifyHandler , (( aFilename , ForEachClassFn , k , v ) for k,v in sorted( Classes.items()) ) ) # Bodgy hack to bypass the limitations of imap
     for res in tqdm.tqdm( generator , ncols=Ncol, desc="Analysing", total=len(Classes) ): Data[ res[0] ] = res[1]
