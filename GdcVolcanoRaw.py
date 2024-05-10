@@ -3,7 +3,6 @@ from GdcUtils import *
 from openpyxl import Workbook
 import matplotlib.pyplot as plt
 import numpy as np
-import os, bz2 , _pickle, multiprocessing
 
 # ======================================================================================================
 def Flatten( Data , index ):
@@ -57,6 +56,8 @@ def DrawVolcanos( Data ):
     ax1.scatter( lData[1][0] , lData[1][1] , color="0.75" , s=1 )
     ax1.scatter( lData[2][0] , lData[2][1] , color="b" , s=1 )
     ax1.scatter( lData[0][0] , lData[0][1] , color="r" , s=1 )
+    ax1.grid( True )
+
   plt.yscale( "log" )
 
   #Add the common y-axis label

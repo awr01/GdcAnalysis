@@ -9,12 +9,12 @@ def Classifier( aCase ):
   DiseaseType = str( aCase.DiseaseType )
   lDiseaseType = DiseaseType.lower()
 
-  if   "unspecified" == lDiseaseType : Class = "Unspecified"
-  elif "none"        == lDiseaseType : Class = "None"
-  elif "carcinoma" in lDiseaseType : Class = "Carcinoma"
-  elif "leukemia" in lDiseaseType:   Class = "Leukemia"
-  elif "melanoma" in lDiseaseType:   Class = "Melanoma"
-  else:                              Class = "Other"
+  if "unspecified" == lDiseaseType: Class = "Unspecified"
+  elif "none"      == lDiseaseType: Class = "None"
+  elif "carcinoma" in lDiseaseType: Class = "Carcinoma"
+  elif "leukemia"  in lDiseaseType: Class = "Leukemia"
+  elif "melanoma"  in lDiseaseType: Class = "Melanoma"
+  else:                             Class = "Other"
 
   if not Class in Dict: Dict[ Class ] = []
   if not DiseaseType in Dict[ Class ]: Dict[ Class ].append( DiseaseType )
@@ -75,9 +75,8 @@ def DrawVolcanos( Data ):
     ax1.scatter( lData[1][0] , lData[1][1] , color="0.75" , s=1 )
     ax1.scatter( lData[2][0] , lData[2][1] , color="b" , s=1 )
     ax1.scatter( lData[0][0] , lData[0][1] , color="r" , s=1 )
-
-    ax1.text( -24 , 0.01 , "\n".join( sorted( Dict[lDiseaseType] ) ) , fontsize="x-small" )
     ax1.grid( True )
+    ax1.text( -24 , 0.01 , "\n".join( sorted( Dict[lDiseaseType] ) ) , fontsize="x-small" )
 
   plt.yscale( "log" )
 
