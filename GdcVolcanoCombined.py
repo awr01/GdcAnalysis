@@ -1,6 +1,5 @@
 from GdcLib import *
 from GdcUtils import *
-from openpyxl import Workbook
 import matplotlib.pyplot as plt
 import numpy as np
 
