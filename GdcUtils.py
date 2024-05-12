@@ -1,13 +1,16 @@
 import argparse
-# from GdcUtils import *
+from GdcLib import *
+import os , hashlib , bz2 , _pickle , math , gzip
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument( '--src' , required=True , help='The source tarball')
 parser.add_argument( '--dest' , required=True , help='The destination file')
 
-parser.add_argument( '--genes' , nargs='+' , default=[] , help='Genes of interest')
-parser.add_argument( '--mutations' , nargs='+' , default=[] , help='Mutations of interest')
+parser.add_argument( '--mutation' , required=True , help='Mutation of interest')
+
+# parser.add_argument( '--genes' , nargs='+' , default=[] , help='Genes of interest')
+# parser.add_argument( '--mutations' , nargs='+' , default=[] , help='Mutations of interest')
 
 # parser.add_argument( '--gene-file' , help='Genes of interest')
 # parser.add_argument( '--mutation-file' , help='Mutations of interest')
@@ -16,6 +19,8 @@ args = parser.parse_args()
 
 if not args.src .endswith( ".tar"  ): raise Exception( "Source file must have '.tar' file-extension" )
 if not args.dest.endswith( ".xlsx" ): raise Exception( "Destination file must have '.xlsx' file-extension" )
+
+ 
 
 # if not args.gene_file is None:
 #   with open( args.gene_file , "r" ) as src:
@@ -105,4 +110,51 @@ def GdcStatistics( aMut , aWT , aRatioCut = False , aPvalueCut = None ):
 
   return lRet
 # ======================================================================================================
-        
+
+
+# ======================================================================================================
+def GdcAnalysis_Flatten( Data , index ):
+  lRet = []      
+  for j in Data:
+    for i in j.StarCounts: 
+      lRet.append( i.TpmUnstranded[ index ] )
+  return lRet
+
+def GdcAnalysis_ForEachClass( Class , Cases , index ):
+  lMut , lWt = [] , []
+
+  for Case in Cases:
+    if args.mutation in Case.Mutations: 
+      if Case.Mutations[ args.mutation ].Classification != SilentOrSplice : lMut.append( Case )   
+    else: lWt.append( Case )  
+
+  if len( lMut ) == 0 or len( lWt ) == 0 : return
+  
+  Results = {}
+  for GeneName , Gene in tqdm.tqdm( sorted( StarCounts.GeneCatalogue.items() ) , leave=False , ncols=Ncol , desc=f"{Class}: Analysing", position=index ):
+    if Gene.type != "protein_coding" : continue
+    lRet = GdcStatistics( GdcAnalysis_Flatten( lMut , Gene.index ) , GdcAnalysis_Flatten( lWt , Gene.index ) )
+    if lRet is None: continue
+    if math.isnan( lRet.neg_log_pvalue ) : continue
+    Results[ GeneName ] = lRet
+  return Results
+
+def GdcAnalysis_FinallyFn( CacheFile , FinallyFn , Data ):
+  print( f"Writing cache: '{CacheFile}'" )
+  with gzip.open( CacheFile , 'wb' ) as dest: _pickle.dump( Data , dest )
+  print( "Final user analysis" )
+  FinallyFn( Data )
+
+def GdcAnalysis( ClassifyFn , ClassifyDesc , FinallyFn , maxthreads=None ): 
+  CacheFile = f".cache/GdcAnalysis.{args.mutation}.{ClassifyDesc}.pkl.gz"
+
+  if os.path.isfile( CacheFile ):
+    print( f"Loading cache: '{CacheFile}': If you have recently downloaded new data, you may need to delete this file.")
+    with gzip.open( CacheFile , 'rb' ) as src: Data = _pickle.load( src )
+    print( "Final user analysis" )
+    FinallyFn( Data )
+  else:    
+    if not os.path.isdir( ".cache" ): os.mkdir( ".cache" )
+    LoadAndClassify( args.src , ClassifyFn , GdcAnalysis_ForEachClass , lambda Data : GdcAnalysis_FinallyFn( CacheFile , FinallyFn , Data ) , maxthreads=maxthreads )
+    
+# ======================================================================================================

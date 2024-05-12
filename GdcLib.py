@@ -143,8 +143,6 @@ def ClassifyHandler( Args ):
     return Class ,  ForEachClass( Class , Cases , index )
 
 def LoadAndClassify( aFilename , ClassifyFn , ForEachClassFn , FinallyFn , maxthreads=None):
-  # print( f"Opening '{aFilename}'" , flush=True , end='\r' )
-
   with tarfile.open( aFilename , mode = 'r' ) as src:
     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
 
