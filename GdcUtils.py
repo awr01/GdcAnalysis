@@ -18,7 +18,7 @@ parser.add_argument( '--mutation' , required=True , help='Mutation of interest')
 args = parser.parse_args()
 
 if not args.src .endswith( ".tar"  ): raise Exception( "Source file must have '.tar' file-extension" )
-if not args.dest.endswith( ".xlsx" ): raise Exception( "Destination file must have '.xlsx' file-extension" )
+# if not args.dest.endswith( ".xlsx" ): raise Exception( "Destination file must have '.xlsx' file-extension" )
 
  
 
@@ -63,12 +63,25 @@ class GdcStatsStruct:
     self.tscore = None
     self.pvalue = None
     self.neg_log_pvalue = None
-    
-  def get( self , *keys ):
-    print( keys )
-    for key in keys:
-      key = key.split( "." , maxsplit=1 )
-      print( key )
+
+  class Object(object): pass
+  Aux = Object()
+
+  def __getstate__(self):
+    ret = self.__dict__.copy()
+    ret['Aux'] = GdcStatsStruct.Aux
+    return ret
+
+  def __setstate__(self, state):
+    GdcStatsStruct.Aux = state.pop('Aux')
+    self.__dict__.update(state)
+
+
+  # def get( self , *keys ):
+  #   print( keys )
+  #   for key in keys:
+  #     key = key.split( "." , maxsplit=1 )
+  #     print( key )
 # ======================================================================================================
 
 

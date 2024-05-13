@@ -159,5 +159,4 @@ def LoadAndClassify( aFilename , ClassifyFn , ForEachClassFn , FinallyFn , maxth
     for res in tqdm.tqdm( generator , ncols=Ncol, desc="Analysing", total=len(Classes) ): Data[ res[0] ] = res[1]
 
   FinallyFn( Data )
-
 # ======================================================================================================

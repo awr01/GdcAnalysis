@@ -1,39 +1,6 @@
-# from GdcLib import *
 from GdcUtils import *
 from openpyxl import Workbook
-# import numpy as np
-# import os , hashlib , bz2 , _pickle
-
-# # ======================================================================================================
-# def Flatten( Data , index ):
-#   lRet = []      
-#   for j in Data:
-#     for i in j.StarCounts: 
-#       lRet.append( i.TpmUnstranded[ index ] )
-#   return lRet
-
-# def ForEachClass( Class , Cases , index ):
-#   lMut , lWt = [] , []
-
-#   for Case in Cases:
-#     if MutationOfInterest in Case.Mutations: 
-#       if Case.Mutations[ MutationOfInterest ].Classification != SilentOrSplice : lMut.append( Case )   
-#     else: lWt.append( Case )  
-
-#   if len( lMut ) == 0 or len( lWt ) == 0 : return
-  
-#   Results = {}
-#   for GeneName , Gene in tqdm.tqdm( sorted( StarCounts.GeneCatalogue.items() ) , leave=False , ncols=Ncol , desc=f"{Class}: Analysing", position=index ):
-#     if Gene.type != "protein_coding" : continue
-#     lRet = GdcStatistics( Flatten( lMut , Gene.index ) , Flatten( lWt , Gene.index ) )
-#     if lRet is None: continue
-#     if np.isnan( lRet.neg_log_pvalue ) : continue
-
-#     Results[ GeneName ] = lRet
-
-#   return Results
-# # ======================================================================================================
-
+import tqdm
 
 # ======================================================================================================
 def ExportXlsx( Data ): 
@@ -63,9 +30,7 @@ def ExportXlsx( Data ):
   wb.save( args.dest ) 
 # ======================================================================================================
 
-
 # ====================================================================================================== 
-# LoadAndClassify( args.src , lambda aCase: str( aCase.DiseaseType ) , ForEachClass , ExportXlsx )
-# ======================================================================================================
-
+if not args.dest.endswith( ".xlsx" ): raise Exception( "Destination file must have '.xlsx' file-extension" )
 GdcAnalysis( lambda aCase: str( aCase.DiseaseType ) , "PerDisease" , ExportXlsx )
+# ======================================================================================================
