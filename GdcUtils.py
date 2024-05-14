@@ -63,25 +63,6 @@ class GdcStatsStruct:
     self.tscore = None
     self.pvalue = None
     self.neg_log_pvalue = None
-
-  class Object(object): pass
-  Aux = Object()
-
-  def __getstate__(self):
-    ret = self.__dict__.copy()
-    ret['Aux'] = GdcStatsStruct.Aux
-    return ret
-
-  def __setstate__(self, state):
-    GdcStatsStruct.Aux = state.pop('Aux')
-    self.__dict__.update(state)
-
-
-  # def get( self , *keys ):
-  #   print( keys )
-  #   for key in keys:
-  #     key = key.split( "." , maxsplit=1 )
-  #     print( key )
 # ======================================================================================================
 
 
@@ -134,12 +115,20 @@ def GdcAnalysis_Flatten( Data , index ):
   return lRet
 
 def GdcAnalysis_ForEachClass( Class , Cases , index ):
-  lMut , lWt = [] , []
+  lMut , lWt , Diseases = [] , [] , {}
 
   for Case in Cases:
+
+    info = str( Case.DiseaseType )
+    if not info in Diseases: Diseases[ info ] = { "Mut":0 , "WT":0 }
+
     if args.mutation in Case.Mutations: 
-      if Case.Mutations[ args.mutation ].Classification != SilentOrSplice : lMut.append( Case )   
-    else: lWt.append( Case )  
+      if Case.Mutations[ args.mutation ].Classification == SilentOrSplice : continue
+      lMut.append( Case ) 
+      Diseases[ info ][ "Mut" ] += 1  
+    else:
+      lWt.append( Case )  
+      Diseases[ info ][ "WT" ] += 1  
 
   if len( lMut ) == 0 or len( lWt ) == 0 : return
   
@@ -150,7 +139,7 @@ def GdcAnalysis_ForEachClass( Class , Cases , index ):
     if lRet is None: continue
     if math.isnan( lRet.neg_log_pvalue ) : continue
     Results[ GeneName ] = lRet
-  return Results
+  return Diseases , Results
 
 def GdcAnalysis_FinallyFn( CacheFile , FinallyFn , Data ):
   print( f"Writing cache: '{CacheFile}'" )
