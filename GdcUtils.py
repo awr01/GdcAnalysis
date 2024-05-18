@@ -107,13 +107,6 @@ def GdcStatistics( aMut , aWT , aRatioCut = False , aPvalueCut = None ):
 
 
 # ======================================================================================================
-def GdcAnalysis_Flatten( Data , index ):
-  lRet = []      
-  for j in Data:
-    for i in j.StarCounts: 
-      lRet.append( i.TpmUnstranded[ index ] )
-  return lRet
-
 def GdcAnalysis_ForEachClass( Class , Cases , index ):
   lMut , lWt , Diseases = [] , [] , {}
 
@@ -135,7 +128,7 @@ def GdcAnalysis_ForEachClass( Class , Cases , index ):
   Results = {}
   for GeneName , Gene in tqdm.tqdm( sorted( StarCounts.GeneCatalogue.items() ) , leave=False , ncols=Ncol , desc=f"{Class}: Analysing", position=index ):
     if Gene.type != "protein_coding" : continue
-    lRet = GdcStatistics( GdcAnalysis_Flatten( lMut , Gene.index ) , GdcAnalysis_Flatten( lWt , Gene.index ) )
+    lRet = GdcStatistics( FlattenTpmUnstranded( lMut , Gene.index ) , FlattenTpmUnstranded( lWt , Gene.index ) )
     if lRet is None: continue
     if math.isnan( lRet.neg_log_pvalue ) : continue
     Results[ GeneName ] = lRet
@@ -157,6 +150,5 @@ def GdcAnalysis( ClassifyFn , ClassifyDesc , FinallyFn , maxthreads=None ):
     FinallyFn( Data )
   else:    
     if not os.path.isdir( ".cache" ): os.mkdir( ".cache" )
-    LoadAndClassify( args.src , ClassifyFn , GdcAnalysis_ForEachClass , lambda Data : GdcAnalysis_FinallyFn( CacheFile , FinallyFn , Data ) , maxthreads=maxthreads )
-    
+    LoadAndClassify( args.src , ClassifyFn , GdcAnalysis_ForEachClass , lambda Data : GdcAnalysis_FinallyFn( CacheFile , FinallyFn , Data ) , maxthreads=maxthreads )    
 # ======================================================================================================
