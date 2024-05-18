@@ -1,4 +1,4 @@
-import tarfile, tqdm , io , _pickle , multiprocessing
+import tarfile, tqdm , io , _pickle , multiprocessing , os , gzip
 
 Ncol = 150
 
@@ -80,17 +80,6 @@ class Case:
     return f"{years:02}|{days:03}"    
 # ======================================================================================================
 
-
-# ======================================================================================================
-def FlattenTpmUnstranded( Data , index ):
-  lRet = []      
-  for j in Data:
-    for i in j.StarCounts: 
-      lRet.append( i.TpmUnstranded[ index ] )
-  return lRet
-# ======================================================================================================
-
-
 # ======================================================================================================
 def DumpToTar( dest , obj , name ):
   lData = io.BytesIO( _pickle.dumps( obj ) )    
@@ -151,21 +140,36 @@ def ClassifyHandler( Args ):
     Cases = [ _pickle.loads( src.extractfile( lName ).read() ) for lName in tqdm.tqdm( Ids , leave=False , ncols=Ncol , desc=f"{Class}: Loading" , position=index ) ]
     return Class ,  ForEachClass( Class , Cases , index )
 
-def LoadAndClassify( aFilename , ClassifyFn , ForEachClassFn , FinallyFn , maxthreads=None):
-  with tarfile.open( aFilename , mode = 'r' ) as src:
-    StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
+def LoadAndClassify( aFilename , ClassifyFn , ForEachClassFn , FinallyFn , maxthreads=None , cachefile=None ):
 
-    Classes = {}
-    for lName in tqdm.tqdm( src.getmembers() , leave=False , ncols=Ncol , desc=f"Load and classify {aFilename}" ):
-      if lName.name[0] == "@" : continue
-      Class = ClassifyFn( _pickle.loads( src.extractfile( lName ).read() ) )      
-      if Class in Classes: Classes[ Class ].append( lName )
-      else:                Classes[ Class ] = [ lName ] 
-    
-  with multiprocessing.Pool( maxthreads ) as pool:
-    Data = {}
-    generator = pool.imap( ClassifyHandler , (( aFilename , ForEachClassFn , k , v ) for k,v in sorted( Classes.items()) ) ) # Bodgy hack to bypass the limitations of imap
-    for res in tqdm.tqdm( generator , ncols=Ncol, desc="Analysing", total=len(Classes) ): Data[ res[0] ] = res[1]
+  # -------------------------
+  # If a cache exists, use it
+  if (not cachefile is None) and os.path.isfile( cachefile ):
+    print( f"Loading cache: '{cachefile}': If you have recently downloaded new data, you may need to delete this file.")
+    with gzip.open( cachefile , 'rb' ) as src: Data = _pickle.load( src )  
+  # -------------------------
+  # Else analyze the code
+  else:
+    with tarfile.open( aFilename , mode = 'r' ) as src:
+      StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
 
+      Classes = {}
+      for lName in tqdm.tqdm( src.getmembers() , leave=False , ncols=Ncol , desc=f"Load and classify {aFilename}" ):
+        if lName.name[0] == "@" : continue
+        Class = ClassifyFn( _pickle.loads( src.extractfile( lName ).read() ) )      
+        if Class in Classes: Classes[ Class ].append( lName )
+        else:                Classes[ Class ] = [ lName ] 
+      
+    with multiprocessing.Pool( maxthreads ) as pool:
+      Data = {}
+      generator = pool.imap( ClassifyHandler , (( aFilename , ForEachClassFn , k , v ) for k,v in sorted( Classes.items()) ) ) # Bodgy hack to bypass the limitations of imap
+      for res in tqdm.tqdm( generator , ncols=Ncol, desc="Analysing", total=len(Classes) ): Data[ res[0] ] = res[1]
+
+    if (not cachefile is None):
+      print( f"Writing cache: '{cachefile}'" )
+      with gzip.open( cachefile , 'wb' ) as dest: _pickle.dump( Data , dest )
+  # -------------------------
+
+  print( f"Finally" )
   FinallyFn( Data )
 # ======================================================================================================

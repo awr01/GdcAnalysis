@@ -5,6 +5,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # ======================================================================================================
+def Classifier( aCase ):    
+  DiseaseType = str( aCase.DiseaseType )
+  lDiseaseType = DiseaseType.lower()
+
+  if "unspecified" == lDiseaseType: Class = "Unspecified"
+  elif "none"      == lDiseaseType: Class = "None"
+  elif "carcinoma" in lDiseaseType: Class = "Carcinoma"
+  elif "leukemia"  in lDiseaseType: Class = "Leukemia"
+  elif "melanoma"  in lDiseaseType: Class = "Melanoma"
+  else:                             Class = "Other"
+
+  return Class
+# ======================================================================================================
+
+# ======================================================================================================
 def ForEachClass( Class , Cases , index ):
   lMut , lWt , Diseases = SeparateMutandAndWildType( Cases )
   if len( lMut ) == 0 or len( lWt ) == 0 : return
@@ -56,9 +71,8 @@ def Finally( Data ):
 # ======================================================================================================
 
 
-
 # ====================================================================================================== 
 if not args.dest.endswith( ".pdf" ): raise Exception( "Destination file must have '.pdf' file-extension" )
-CacheFile = f".cache/BoxPlot.{args.mutation}.PerDisease.pkl.gz"
-LoadAndClassify( args.src , lambda aCase: str( aCase.DiseaseType ) , ForEachClass , Finally , cachefile=CacheFile )    
+CacheFile = f".cache/BoxPlot.{args.mutation}.BroadClasses.pkl.gz"
+LoadAndClassify( args.src , Classifier , ForEachClass , Finally , cachefile=CacheFile )    
 # ======================================================================================================

@@ -107,7 +107,16 @@ def GdcStatistics( aMut , aWT , aRatioCut = False , aPvalueCut = None ):
 
 
 # ======================================================================================================
-def GdcAnalysis_ForEachClass( Class , Cases , index ):
+def FlattenTpmUnstranded( Data , index ):
+  lRet = []      
+  for j in Data:
+    for i in j.StarCounts: 
+      lRet.append( i.TpmUnstranded[ index ] )
+  return lRet
+# ======================================================================================================
+
+# ======================================================================================================
+def SeparateMutandAndWildType( Cases ):
   lMut , lWt , Diseases = [] , [] , {}
 
   for Case in Cases:
@@ -123,6 +132,14 @@ def GdcAnalysis_ForEachClass( Class , Cases , index ):
       lWt.append( Case )  
       Diseases[ info ][ "WT" ] += 1  
 
+  return lMut , lWt , Diseases
+# ======================================================================================================
+
+
+
+# ======================================================================================================
+def GdcAnalysis_ForEachClass( Class , Cases , index ):
+  lMut , lWt , Diseases = SeparateMutandAndWildType( Cases )
   if len( lMut ) == 0 or len( lWt ) == 0 : return
   
   Results = {}
@@ -134,21 +151,7 @@ def GdcAnalysis_ForEachClass( Class , Cases , index ):
     Results[ GeneName ] = lRet
   return Diseases , Results
 
-def GdcAnalysis_FinallyFn( CacheFile , FinallyFn , Data ):
-  print( f"Writing cache: '{CacheFile}'" )
-  with gzip.open( CacheFile , 'wb' ) as dest: _pickle.dump( Data , dest )
-  print( "Final user analysis" )
-  FinallyFn( Data )
-
 def GdcAnalysis( ClassifyFn , ClassifyDesc , FinallyFn , maxthreads=None ): 
   CacheFile = f".cache/GdcAnalysis.{args.mutation}.{ClassifyDesc}.pkl.gz"
-
-  if os.path.isfile( CacheFile ):
-    print( f"Loading cache: '{CacheFile}': If you have recently downloaded new data, you may need to delete this file.")
-    with gzip.open( CacheFile , 'rb' ) as src: Data = _pickle.load( src )
-    print( "Final user analysis" )
-    FinallyFn( Data )
-  else:    
-    if not os.path.isdir( ".cache" ): os.mkdir( ".cache" )
-    LoadAndClassify( args.src , ClassifyFn , GdcAnalysis_ForEachClass , lambda Data : GdcAnalysis_FinallyFn( CacheFile , FinallyFn , Data ) , maxthreads=maxthreads )    
+  LoadAndClassify( args.src , ClassifyFn , GdcAnalysis_ForEachClass , FinallyFn , maxthreads=maxthreads , cachefile=CacheFile )    
 # ======================================================================================================
