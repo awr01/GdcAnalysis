@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # ======================================================================================================
-def ForEachClass( Class , Cases , index ):
+def BoxPlot_ForEachClass( Class , Cases , index ):
   lMut , lWt , Diseases = SeparateMutandAndWildType( Cases )
   if len( lMut ) == 0 or len( lWt ) == 0 : return
 
@@ -14,7 +14,7 @@ def ForEachClass( Class , Cases , index ):
 # ======================================================================================================
 
 # ======================================================================================================
-def Finally( Data ):
+def DrawBoxPlot( Data ):
   Data = { k:v for k,v in Data.items() if (not v is None) and len(v) }
 
   n = len(Data)
@@ -41,7 +41,6 @@ def Finally( Data ):
 
     ax1.text( 0.6 , 25 , "\n".join( sorted( labels ) ) + f'\n$p_{{value}}={lStats.pvalue:.2e}$' , fontsize="x-small" )
 
-
   #Add the common y-axis label
   plt.yscale( "log" )
   fig.add_subplot(111, frameon=False)
@@ -60,5 +59,5 @@ def Finally( Data ):
 # ====================================================================================================== 
 if not args.dest.endswith( ".pdf" ): raise Exception( "Destination file must have '.pdf' file-extension" )
 CacheFile = f".cache/BoxPlot.{args.mutation}.PerDisease.pkl.gz"
-LoadAndClassify( args.src , lambda aCase: str( aCase.DiseaseType ) , ForEachClass , Finally , cachefile=CacheFile )    
+LoadAndClassify( args.src , lambda aCase: str( aCase.DiseaseType ) , BoxPlot_ForEachClass , DrawBoxPlot , cachefile=CacheFile )    
 # ======================================================================================================
