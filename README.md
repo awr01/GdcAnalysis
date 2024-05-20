@@ -23,24 +23,27 @@ The downloader keeps a cache in the `.cache` folder in case it is interrupted. I
 
 Once the file is successfully downloaded, the `.cache` folder can be deleted to free 18GB of disk space.
 
-## Run the co-mutation analysis
+## Run the various analysis tools
 ```
-python GdcAnalysis.py --src NIH_GDC_dataset.tgz --dest Analysis.xlsx --mutation ATRX
-```
-This produces a Microsoft Excel spreadsheet with one sheet per different cancer-types, each giving the star-count statistics for mutant and wild-type cases of the specified gene, here ATRX.
-
-## Run the various plot analyses, highlighting DRG2
-```
-python GdcVolcano.py          --src NIH_GDC_dataset.tgz --dest [Target].pdf --mutation ATRX
-python GdcBoxPlots.py         --src NIH_GDC_dataset.tgz --dest [Target].pdf --mutation ATRX
-```
-For each cancer type, these produce respectively
- - volcano plots of the statistical significance of star-counts vs. the log1.5(fold-ratio) of ATRX mutant over ATRX wild-type in different cancer-types, specifically highlighting DRG2, saved to the specified file.
- - combined scatter and box+whisker plots of the DRG2 star-counts for ATRX mutant vs ATRX wild-type in different cancer-types saved to the specified file.
-
-```
-python GdcVolcanoCombined.py  --src NIH_GDC_dataset.tgz --dest [Target].pdf --mutation ATRX
-python GdcBoxPlotsCombined.py --src NIH_GDC_dataset.tgz --dest [Target].pdf --mutation ATRX
+python Gdc.py --src [SOURCE FILE] --dest [OPTIONAL OUTPUT FILE] --output [ANALYSIS TYPE] --classification [DATA CLASSIFICATION]
 ```
 
-As above, but with broader categories, rather than specific cancer types.
+* ```[SOURCE FILE]``` - The tar file containing the dataset
+* ```[OPTIONAL OUTPUT FILE]``` - Optional. Explicitly specify output file name.
+* ```[ANALYSIS TYPE]``` - Specify the analysis output type. Three options:
+    * **Volcano** - Volcano plots (p-value vs. fold-ratio) of star-counts for all available genes for ATRX Mutant vs. Wildtype, for each classification
+    * **BoxPlot** - Box plots of DRG2 star-counts for ATRX Mutant vs. Wildtype, for each classification
+    * **Excel**   - Microsoft Excel spreadsheet, with one sheet per classification, each giving the star-count statistics for all available genes for ATRX Mutant vs. Wildtype
+* ```[DATA CLASSIFICATION]``` - How the data is classified for analysis
+    * **PerDisease** - Classify the data according to NIH GDC diagnosis label
+    * **BroadClasses** - Classify the NIH GDC diagnosis label more broadly as "Carcinoma", "Melanoma", "Leukemia", "None", "Unspecified" and "Other"
+
+Examples:
+```
+python Gdc.py --src NIH_GDC_dataset.tar --output BoxPlot --classification PerDisease
+python Gdc.py --src NIH_GDC_dataset.tar --output BoxPlot --classification BroadClasses
+python Gdc.py --src NIH_GDC_dataset.tar --output Volcano --classification PerDisease
+python Gdc.py --src NIH_GDC_dataset.tar --output Volcano --classification BroadClasses
+python Gdc.py --src NIH_GDC_dataset.tar --output Excel   --classification PerDisease
+python Gdc.py --src NIH_GDC_dataset.tar --output Excel   --classification BroadClasses
+```
