@@ -1,34 +1,34 @@
-import argparse
+# import argparse
 from GdcLib import *
-import os , hashlib , bz2 , _pickle , math , gzip
+# import os , hashlib , bz2 , _pickle , math , gzip
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument( '--src' , required=True , help='The source tarball')
-parser.add_argument( '--dest' , required=True , help='The destination file')
+# parser = argparse.ArgumentParser()
+# parser.add_argument( '--src' , required=True , help='The source tarball')
+# parser.add_argument( '--dest' , required=True , help='The destination file')
 
-parser.add_argument( '--mutation' , required=True , help='Mutation of interest')
+# parser.add_argument( '--mutation' , required=True , help='Mutation of interest')
 
-# parser.add_argument( '--genes' , nargs='+' , default=[] , help='Genes of interest')
-# parser.add_argument( '--mutations' , nargs='+' , default=[] , help='Mutations of interest')
+# # parser.add_argument( '--genes' , nargs='+' , default=[] , help='Genes of interest')
+# # parser.add_argument( '--mutations' , nargs='+' , default=[] , help='Mutations of interest')
 
-# parser.add_argument( '--gene-file' , help='Genes of interest')
-# parser.add_argument( '--mutation-file' , help='Mutations of interest')
+# # parser.add_argument( '--gene-file' , help='Genes of interest')
+# # parser.add_argument( '--mutation-file' , help='Mutations of interest')
 
-args = parser.parse_args()
+# args = parser.parse_args()
 
-if not args.src .endswith( ".tar"  ): raise Exception( "Source file must have '.tar' file-extension" )
-# if not args.dest.endswith( ".xlsx" ): raise Exception( "Destination file must have '.xlsx' file-extension" )
+# if not args.src .endswith( ".tar"  ): raise Exception( "Source file must have '.tar' file-extension" )
+# # if not args.dest.endswith( ".xlsx" ): raise Exception( "Destination file must have '.xlsx' file-extension" )
 
  
 
-# if not args.gene_file is None:
-#   with open( args.gene_file , "r" ) as src:
-#     for line in src: args.genes.append( line.strip() )
+# # if not args.gene_file is None:
+# #   with open( args.gene_file , "r" ) as src:
+# #     for line in src: args.genes.append( line.strip() )
 
-# if not args.mutation_file is None:
-#   with open( args.mutation_file , "r" ) as src:
-#     for line in src: args.mutations.append( line.strip() )
+# # if not args.mutation_file is None:
+# #   with open( args.mutation_file , "r" ) as src:
+# #     for line in src: args.mutations.append( line.strip() )
 
 
 
@@ -116,7 +116,7 @@ def FlattenTpmUnstranded( Data , index ):
 # ======================================================================================================
 
 # ======================================================================================================
-def SeparateMutandAndWildType( Cases ):
+def SeparateMutandAndWildType( Cases , Mutation ):
   lMut , lWt , Diseases = [] , [] , {}
 
   for Case in Cases:
@@ -124,8 +124,8 @@ def SeparateMutandAndWildType( Cases ):
     info = str( Case.DiseaseType )
     if not info in Diseases: Diseases[ info ] = { "Mut":0 , "WT":0 }
 
-    if args.mutation in Case.Mutations: 
-      if Case.Mutations[ args.mutation ].Classification == SilentOrSplice : continue
+    if Mutation in Case.Mutations: 
+      if Case.Mutations[ Mutation ].Classification == SilentOrSplice : continue
       lMut.append( Case ) 
       Diseases[ info ][ "Mut" ] += 1  
     else:
@@ -137,21 +137,21 @@ def SeparateMutandAndWildType( Cases ):
 
 
 
-# ======================================================================================================
-def GdcAnalysis_ForEachClass( Class , Cases , index ):
-  lMut , lWt , Diseases = SeparateMutandAndWildType( Cases )
-  if len( lMut ) == 0 or len( lWt ) == 0 : return
+# # ======================================================================================================
+# def GdcAnalysis_ForEachClass( Class , Cases , index ):
+#   lMut , lWt , Diseases = SeparateMutandAndWildType( Cases )
+#   if len( lMut ) == 0 or len( lWt ) == 0 : return
   
-  Results = {}
-  for GeneName , Gene in tqdm.tqdm( sorted( StarCounts.GeneCatalogue.items() ) , leave=False , ncols=Ncol , desc=f"{Class}: Analysing", position=index ):
-    if Gene.type != "protein_coding" : continue
-    lRet = GdcStatistics( FlattenTpmUnstranded( lMut , Gene.index ) , FlattenTpmUnstranded( lWt , Gene.index ) )
-    if lRet is None: continue
-    if math.isnan( lRet.neg_log_pvalue ) : continue
-    Results[ GeneName ] = lRet
-  return Diseases , Results
+#   Results = {}
+#   for GeneName , Gene in tqdm.tqdm( sorted( StarCounts.GeneCatalogue.items() ) , leave=False , ncols=Ncol , desc=f"{Class}: Analysing", position=index ):
+#     if Gene.type != "protein_coding" : continue
+#     lRet = GdcStatistics( FlattenTpmUnstranded( lMut , Gene.index ) , FlattenTpmUnstranded( lWt , Gene.index ) )
+#     if lRet is None: continue
+#     if math.isnan( lRet.neg_log_pvalue ) : continue
+#     Results[ GeneName ] = lRet
+#   return Diseases , Results
 
-def GdcAnalysis( ClassifyFn , ClassifyDesc , FinallyFn , maxthreads=None ): 
-  CacheFile = f".cache/GdcAnalysis.{args.mutation}.{ClassifyDesc}.pkl.gz"
-  LoadAndClassify( args.src , ClassifyFn , GdcAnalysis_ForEachClass , FinallyFn , maxthreads=maxthreads , cachefile=CacheFile )    
-# ======================================================================================================
+# def GdcAnalysis( ClassifyFn , ClassifyDesc , FinallyFn , maxthreads=None ): 
+#   CacheFile = f".cache/GdcAnalysis.{args.mutation}.{ClassifyDesc}.pkl.gz"
+#   LoadAndClassify( args.src , ClassifyFn , GdcAnalysis_ForEachClass , FinallyFn , maxthreads=maxthreads , cachefile=CacheFile )    
+# # ======================================================================================================
