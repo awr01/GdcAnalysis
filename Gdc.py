@@ -27,8 +27,8 @@ def ExportXlsx( Data ):
 
   Data = { k:v for k,v in Data.items() if (not v is None) and len(v) }
 
-  for Classification , (Diseases , lData) in tqdm.tqdm( Data.items() , ncols=Ncol , desc=f"Exporting Xlsx" ):
-    
+  for Classification , (_ , lData) in tqdm.tqdm( Data.items() , ncols=Ncol , desc=f"Exporting Xlsx" ):
+
     ws = wb.create_sheet( Classification )
     ws.append( [ "Gene" , 
                   "Mut-count" , "Mut-mean" , "Mut-mean-error" , "Mut-std.dev" , 
@@ -58,7 +58,7 @@ def DrawVolcanos( Data ):
   fig , axs = plt.subplots( b , a , sharey=True )
   for x in axs.flat[n:]: x.set_visible( False )
 
-  for (Classification , (Diseases , lData) ) , ax1 in tqdm.tqdm( list( zip( Data.items() , fig.axes ) ) , ncols=Ncol , desc=f"Drawing Volcanos" ):
+  for (_ , (Diseases , lData) ) , ax1 in tqdm.tqdm( list( zip( Data.items() , fig.axes ) ) , ncols=Ncol , desc=f"Drawing Volcanos" ):
 
     x0 , y0 , x1 , y1 , x2 , y2 = [] , [] , [] , [] , [] , []
 
@@ -73,7 +73,6 @@ def DrawVolcanos( Data ):
         x2.append( Stats.log_mean_ratio_with_error[0] )
         y2.append( Stats.neg_log_pvalue )   
 
-    # ax1.set_xlabel( Classification , style='italic' , labelpad=1 )
     ax1.set_xlim( -25 , 25 )
     ax1.set_ylim( 1/200 , 200 )
     ax1.scatter( x1 , y1 , color="0.75" , s=1 )
@@ -127,12 +126,11 @@ def DrawBoxPlot( Data ):
   for x in axs.flat[n:]: x.set_visible( False )
 
   # Fill the plots 
-  for (Classification , (Diseases , lData) ) , ax1 in tqdm.tqdm( list( zip( Data.items() , fig.axes ) ) , ncols=Ncol , desc=f"Drawing Box plots" ):
+  for (_ , (Diseases , lData) ) , ax1 in tqdm.tqdm( list( zip( Data.items() , fig.axes ) ) , ncols=Ncol , desc=f"Drawing Box plots" ):
     lStats = GdcStatistics( *lData ) 
     ax1.set_ylim( 1 , 100 )
     box1 = ax1.boxplot( lData , labels= ["$Mutant$" , "$Wild-type$"] , widths= 0.8 , whis=False , showfliers=False , showmeans=True , meanprops=dict(color="grey"), meanline=True, medianprops=dict(color="black") )    
     for i in range( 2 ): ax1.scatter( np.random.normal( i+1 , 0.05 , len( lData[i] ) ) , lData[i] , color=[ "r" , "b" ][i] , alpha=0.5 , s=1 )
-    # ax1.text( 0.6 , 30 , f'{Classification}\n$N_{{Mutant}} = {len(lData[0])}$\n$N_{{Wild-type}} = {len(lData[1])}$\n$p_{{value}}={lStats.pvalue:.2e}$' , fontsize="x-small" )
 
     labels = [] 
     for k,v in sorted( Diseases.items() ):
@@ -185,13 +183,11 @@ def BroadClasses( aCase ):
 
 
 # ======================================================================================================
-
 MutationOfInterest = "ATRX"
 
 parser = argparse.ArgumentParser()
 parser.add_argument( '--src' , required=True , help='The source tarball' )
 parser.add_argument( '--dest' , help='The destination file' )
-# parser.add_argument( '--mutation' , required=True , help='Mutation of interest')
 parser.add_argument( '--output' , required=True , choices=[ 'Excel' , 'Volcano' , 'BoxPlot' ] , help='The output type' )
 parser.add_argument( '--classification' , required=True , choices=[ 'PerDisease' , 'BroadClasses' ] , help='Treat per-pisease or use broader classes' )
 
@@ -223,5 +219,4 @@ else: # BoxPlot
 if not os.path.isdir( ".cache" ): os.mkdir( ".cache" )
 CacheFile = f".cache/ATRX-DRG2-{cacheprefix}-{args.classification}.pkl.gz"
 LoadAndClassify( args.src , classifierfn , foreachfn , exportfn , cachefile=CacheFile , maxthreads=maxthreads )    
-
 # ======================================================================================================

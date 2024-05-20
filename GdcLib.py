@@ -90,7 +90,6 @@ def DumpToTar( dest , obj , name ):
 def SaveCases( aFilename , aCases ):
   with tarfile.open( aFilename , mode='a' ) as dest:
     DumpToTar( dest , StarCounts.GeneCatalogue , "@GeneCatalogue" )
-    # for i,j in tqdm.tqdm( aCases.items() , ncols=Ncol , desc="Saving to disk" ): DumpToTar( dest , j , i )
     for i in tqdm.tqdm( aCases , ncols=Ncol , desc="Saving to disk" ): DumpToTar( dest , i , i.CaseId )
 # ======================================================================================================
 
