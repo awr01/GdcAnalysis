@@ -25,7 +25,10 @@ Once the file is successfully downloaded, the `.cache` folder can be deleted to 
 
 ## Run the various analysis tools
 ```
-python Gdc.py --src [SOURCE FILE] --dest [OUTPUT FILE] --output [ANALYSIS TYPE] --classification [DATA CLASSIFICATION]
+python Gdc.py --src [SOURCE FILE] 
+              --dest [OUTPUT FILE] 
+              --output [ANALYSIS TYPE] 
+              --classification [DATA CLASSIFICATION]
 ```
 
 * ```[SOURCE FILE]``` - The tar file containing the dataset
