@@ -53,9 +53,9 @@ def CachedGetTar( aKeys ):
   lFile = f".cache/{lKeys}.tgz"
 
   if os.path.isfile( lFile ): 
-    print( f" Cached: {lFile}" , end = "" , flush=True )  
+    print( f" Cached: {lFile}" , end = "\r" , flush=True )  
   else:
-    print( f" Download: {lFile}" , end = "" , flush=True )
+    print( f" Download: {lFile}" , end = "\r" , flush=True )
     lResponse = requests.post( "https://api.gdc.cancer.gov/data" , data = json.dumps( { "ids":aKeys } ) , headers = { "Content-Type" : "application/json" } )
     if not lResponse.status_code in [ 200 , 203 ] : raise Exception( f"Requests returned status-code {lResponse.status_code}" )  
     with open( lFile , "wb" ) as dest: dest.write( lResponse.content )
@@ -63,28 +63,56 @@ def CachedGetTar( aKeys ):
   return lFile
 # ======================================================================================================
 
-# ======================================================================================================
-def DownloadFileIds( lFileIds ):
-  lTar = CachedGetTar( list( lFileIds.keys() ) )
-  lTar = tarfile.open( lTar , mode='r:gz' )
+# # ======================================================================================================
+# def DownloadFileIds( lFileIds ):
+#   lTar = CachedGetTar( list( lFileIds.keys() ) )
+#   lTar = tarfile.open( lTar , mode='r:gz' )
 
-  for lName in tqdm.tqdm( lTar.getmembers(), leave=False , ncols=Ncol ): # Iterate over the files in the tarball
-    if lName.name == "MANIFEST.txt": continue
-    if lName.name.startswith( "superseded" ): 
-      #lSuperceded.extend( lTar.extractfile( lName ).lines() )
-      continue
+#   for lName in tqdm.tqdm( lTar.getmembers(), leave=False , ncols=Ncol ): # Iterate over the files in the tarball
+#     if lName.name == "MANIFEST.txt": continue
+#     if lName.name.startswith( "superseded" ): 
+#       #lSuperceded.extend( lTar.extractfile( lName ).lines() )
+#       continue
       
-    lFileId , _ = lName.name.split( "/" , maxsplit=1 )
-    lCase , lStrategy  = lFileIds[ lFileId ]
-    lData = lTar.extractfile( lName )
-    if lStrategy == 0 : AddWxsFileToCase(    lCase , lData )
-    else:               AddRnaSeqFileToCase( lCase , lData )
+#     lFileId , _ = lName.name.split( "/" , maxsplit=1 )
+#     lCase , lStrategy  = lFileIds[ lFileId ]
+#     lData = lTar.extractfile( lName )
+#     if lStrategy == 0 : AddWxsFileToCase(    lCase , lData )
+#     else:               AddRnaSeqFileToCase( lCase , lData )
     
-  lTar.close()
+#   lTar.close()
   
-  for i in lFileIds.values() :
-    for lGene , lMutation in i[0].Mutations.items():
-      lMutation.classify()
+#   for i in lFileIds.values() :
+#     for lGene , lMutation in i[0].Mutations.items():
+#       lMutation.classify()
+# # ======================================================================================================
+
+# ======================================================================================================
+def DownloadFileIdsX( lFileIds ):
+  return CachedGetTar( list( lFileIds.keys() ) )
+
+
+def DownloadFileIdsY( lTarFiles ):
+  for lTar , lFileIds in tqdm.tqdm( lTarFiles, ncols=Ncol , desc="Parsing Data" ):
+    lTar = tarfile.open( lTar , mode='r:gz' )
+
+    for lName in tqdm.tqdm( lTar.getmembers(), leave=False , ncols=Ncol ): # Iterate over the files in the tarball
+      if lName.name == "MANIFEST.txt": continue
+      if lName.name.startswith( "superseded" ): 
+        #lSuperceded.extend( lTar.extractfile( lName ).lines() )
+        continue
+        
+      lFileId , _ = lName.name.split( "/" , maxsplit=1 )
+      lCase , lStrategy  = lFileIds[ lFileId ]
+      lData = lTar.extractfile( lName )
+      if lStrategy == 0 : AddWxsFileToCase(    lCase , lData )
+      else:               AddRnaSeqFileToCase( lCase , lData )
+      
+    lTar.close()
+    
+    for i in lFileIds.values() :
+      for lGene , lMutation in i[0].Mutations.items():
+        lMutation.classify()
 # ======================================================================================================
 
 
@@ -129,6 +157,7 @@ lExistingIds = [ i.CaseId for i in lExisting ]
 print( len( lExisting ) )
 
 lCases = {}
+lTarFiles = []
 
 for j in tqdm.tqdm( lFileInfo , ncols=Ncol , desc="Collating available Data" ):  
   CaseId = j["cases"][0]["case_id"]
@@ -171,11 +200,13 @@ for lCaseId , lCase in tqdm.tqdm( lCases.items() , ncols=Ncol , desc="Getting Da
   delattr( lCase , "RnaSeqFileIds" )
   
   if len( lFileIds ) > 50:
-    DownloadFileIds( lFileIds )    
+    lTarFiles.append( ( DownloadFileIdsX( lFileIds ) , lFileIds ) )   
     lFileIds = {} 
+
 else:
-  DownloadFileIds( lFileIds )    
+  lTarFiles.append( ( DownloadFileIdsX( lFileIds ) , lFileIds ) )   
   lFileIds = {} 
-    
+
+DownloadFileIdsY( lTarFiles )    
 SaveCases( args.dest , lCases.values() )
 # ======================================================================================================

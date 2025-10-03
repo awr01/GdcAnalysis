@@ -63,7 +63,7 @@ def DrawVolcanos( Data ):
     x0 , y0 , x1 , y1 , x2 , y2 = [] , [] , [] , [] , [] , []
 
     for GeneName, Stats in lData.items():
-      if ( GeneName == "DRG2" ):  
+      if ( GeneName == "TERT" ):  
         x0.append( Stats.log_mean_ratio_with_error[0] )
         y0.append( Stats.neg_log_pvalue )   
       elif ( Stats.neg_log_pvalue < 2.3 ) or ( np.fabs( Stats.log_mean_ratio_with_error[0] ) < 1 ):  
@@ -111,8 +111,8 @@ def BoxPlot_ForEachClass( Class , Cases , index ):
   lMut , lWt , Diseases = SeparateMutandAndWildType( Cases , MutationOfInterest )
   if len( lMut ) == 0 or len( lWt ) == 0 : return
 
-  DRG2 = StarCounts.GeneCatalogue[ "DRG2" ].index    
-  return Diseases, ( FlattenTpmUnstranded( lMut , DRG2 ) , FlattenTpmUnstranded( lWt , DRG2 ) )
+  TERT = StarCounts.GeneCatalogue[ "TERT" ].index    
+  return Diseases, ( FlattenTpmUnstranded( lMut , TERT ) , FlattenTpmUnstranded( lWt , TERT ) )
 # ======================================================================================================
 
 # ======================================================================================================
@@ -128,7 +128,7 @@ def DrawBoxPlot( Data ):
   # Fill the plots 
   for (_ , (Diseases , lData) ) , ax1 in tqdm.tqdm( list( zip( Data.items() , fig.axes ) ) , ncols=Ncol , desc=f"Drawing Box plots" ):
     lStats = GdcStatistics( *lData ) 
-    ax1.set_ylim( 1 , 100 )
+    ax1.set_ylim( .01 , 100 )
     box1 = ax1.boxplot( lData , tick_labels= ["$Mutant$" , "$Wild-type$"] , widths= 0.8 , whis=False , showfliers=False , showmeans=True , meanprops=dict(color="grey"), meanline=True, medianprops=dict(color="black") )    
     for i in range( 2 ): ax1.scatter( np.random.normal( i+1 , 0.05 , len( lData[i] ) ) , lData[i] , color=[ "r" , "b" ][i] , alpha=0.5 , s=1 )
 
@@ -140,13 +140,18 @@ def DrawBoxPlot( Data ):
         k = k[:index] + '\n' + k[index:]
       labels.append( k )     
 
-    ax1.text( 0.6 , 35 , "\n".join( sorted( labels ) ) + f'\n$p_{{value}}={lStats.pvalue:.2e}$' , fontsize="x-small" )
+
+    labels = "\n".join( sorted( labels ) )
+    try: labels += f'\n$p_{{value}}={lStats.pvalue:.2e}$'
+    except: pass
+
+    ax1.text( 0.6 , 20 , labels , fontsize="x-small" )
 
   #Add the common y-axis label
   plt.yscale( "log" )
   fig.add_subplot(111, frameon=False)
   plt.tick_params(labelcolor='none', which='both', top=False, bottom=False, left=False, right=False)
-  plt.ylabel( "DRG2 TPM-unstranded" , style='italic' )
+  plt.ylabel( "TERT TPM-unstranded" , style='italic' )
     
   # Draw the images
   fig.set_size_inches( 16 , 20 )
@@ -183,7 +188,7 @@ def BroadClasses( aCase ):
 
 
 # ======================================================================================================
-MutationOfInterest = "ATRX"
+MutationOfInterest = "SETD2"
 
 parser = argparse.ArgumentParser()
 parser.add_argument( '--src' , required=True , help='The source tarball' )
@@ -197,8 +202,8 @@ if not args.src .endswith( ".tar"  ): raise Exception( "Source file must have '.
 
 
 if args.dest is None : 
-  if    args.output == "Excel": args.dest = f"ATRX-DRG2-{args.classification}.xlsx"
-  else:                         args.dest = f"ATRX-DRG2-{args.output}-{args.classification}.pdf"
+  if    args.output == "Excel": args.dest = f"SETD2-TERT-{args.classification}.xlsx"
+  else:                         args.dest = f"SETD2-TERT-{args.output}-{args.classification}.pdf"
   print( f"Set destination to '{args.dest}" )
 
 if args.classification == 'PerDisease':
@@ -217,6 +222,6 @@ else: # BoxPlot
   cacheprefix , foreachfn , exportfn = "BoxPlot" , BoxPlot_ForEachClass , DrawBoxPlot
 
 if not os.path.isdir( ".cache" ): os.mkdir( ".cache" )
-CacheFile = f".cache/ATRX-DRG2-{cacheprefix}-{args.classification}.pkl.gz"
+CacheFile = f".cache/SETD2-TERT-{cacheprefix}-{args.classification}.pkl.gz"
 LoadAndClassify( args.src , classifierfn , foreachfn , exportfn , cachefile=CacheFile , maxthreads=maxthreads )    
 # ======================================================================================================

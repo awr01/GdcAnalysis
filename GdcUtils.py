@@ -3,8 +3,8 @@ from GdcLib import *
 
 # ======================================================================================================
 from scipy.stats import ttest_ind , sem
-from numpy import mean , std , sqrt , log10 , log , warnings
-warnings.filterwarnings( 'ignore' )
+from numpy import mean , std , sqrt , log10 , log #, warnings
+#warnings.filterwarnings( 'ignore' )
 
 const0 = 1.0 / log10( 1.5 )
 const1 = const0 / log( 10.0 )
