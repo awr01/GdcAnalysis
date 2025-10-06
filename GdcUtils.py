@@ -84,7 +84,7 @@ def FlattenTpmUnstranded( Data , index ):
 
 
 # ======================================================================================================
-def SeparateMutandAndWildType( Cases , Mutation ):
+def SeparateMutantAndWildType( Cases , Mutation ):
   lMut , lWt , Diseases = [] , [] , {}
 
   for Case in Cases:
@@ -103,3 +103,24 @@ def SeparateMutandAndWildType( Cases , Mutation ):
   return lMut , lWt , Diseases
 # ======================================================================================================
 
+
+# ======================================================================================================
+def SeparateMutantionType( Cases , Mutation ):
+  lRet = {}
+
+  for Case in Cases:
+
+    info = str( Case.DiseaseType )
+    if not info in lRet: lRet[ info ] = {}
+
+    if Mutation in Case.Mutations:
+      Mutations = set( x[0] for x in Case.Mutations[ Mutation ].Raw )
+    else:
+      Mutations = { "WildType" }
+
+    for M in Mutations:
+      if M in lRet[ info ]: lRet[ info ][ M ].append( Case )
+      else:                 lRet[ info ][ M ] = [ Case ]
+
+  return lRet
+# ======================================================================================================

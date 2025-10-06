@@ -7,7 +7,7 @@ import tqdm, argparse
 
 # ======================================================================================================
 def Common_ForEachClass( Class , Cases , index ):
-  lMut , lWt , Diseases = SeparateMutandAndWildType( Cases , MutationOfInterest)
+  lMut , lWt , Diseases = SeparateMutantAndWildType( Cases , MutationOfInterest)
   if len( lMut ) == 0 or len( lWt ) == 0 : return
   
   Results = {}
@@ -108,7 +108,7 @@ def DrawVolcanos( Data ):
 
 # ======================================================================================================
 def BoxPlot_ForEachClass( Class , Cases , index ):
-  lMut , lWt , Diseases = SeparateMutandAndWildType( Cases , MutationOfInterest )
+  lMut , lWt , Diseases = SeparateMutantAndWildType( Cases , MutationOfInterest )
   if len( lMut ) == 0 or len( lWt ) == 0 : return
 
   DRG2 = StarCounts.GeneCatalogue[ "DRG2" ].index    
