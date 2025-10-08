@@ -67,8 +67,8 @@ class Case:
     self.AgeAtDiagnosis = AgeAtDiagnosis
     self.DiseaseType = DiseaseType
 
-    self.Mutations = {}
-    self.StarCounts = [] 
+    self.Mutations = None
+    self.StarCounts = None 
     
   def GetMutations( self , aGene , default = None ):
     if aGene in self.Mutations: return self.Mutations[ aGene ]
@@ -93,18 +93,18 @@ def SaveCases( aFilename , aCases ):
     for i in tqdm.tqdm( aCases , ncols=Ncol , desc="Saving to disk" ): DumpToTar( dest , i , i.CaseId )
 # ======================================================================================================
 
-# # ======================================================================================================
-# def LoadCases( aFilename ):
-#   lCases = []
-#   print( f"Opening '{aFilename}'" , flush=True )
-#   with tarfile.open( aFilename , mode = 'r' ) as src:
-#     StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
+# ======================================================================================================
+def LoadCases( aFilename ):
+  lCases = []
+  print( f"Opening '{aFilename}'" , flush=True )
+  with tarfile.open( aFilename , mode = 'r' ) as src:
+    StarCounts.GeneCatalogue = _pickle.loads( src.extractfile( "@GeneCatalogue" ).read() )       
 
-#     for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Loading cases" ):
-#       if lName.name[0] != "@": lCases.append( _pickle.loads( src.extractfile( lName ).read() ) )
+    for lName in tqdm.tqdm( src.getmembers() , ncols=Ncol , desc="Loading cases" ):
+      if lName.name[0] != "@": lCases.append( _pickle.loads( src.extractfile( lName ).read() ) )
       
-#   return lCases
-# # ======================================================================================================
+  return lCases
+# ======================================================================================================
 
 # # ======================================================================================================
 # def LoadCases( aFilename , aCaseIds ):

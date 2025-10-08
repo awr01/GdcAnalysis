@@ -94,7 +94,11 @@ def DownloadFileIdsX( lFileIds ):
 
 def DownloadFileIdsY( lTarFiles ):
   for lTar , lFileIds in tqdm.tqdm( lTarFiles, ncols=Ncol , desc="Parsing Data" ):
-    lTar = tarfile.open( lTar , mode='r:gz' )
+    try:
+      lTar = tarfile.open( lTar , mode='r:gz' )
+    except:
+      print( f"\nCould  not open '{lTar}'\n" );
+      continue
 
     for lName in tqdm.tqdm( lTar.getmembers(), leave=False , ncols=Ncol ): # Iterate over the files in the tarball
       if lName.name == "MANIFEST.txt": continue
@@ -111,13 +115,15 @@ def DownloadFileIdsY( lTarFiles ):
     lTar.close()
     
     for i in lFileIds.values() :
-      for lGene , lMutation in i[0].Mutations.items():
-        lMutation.classify()
+      if i[0].Mutations:
+        for lGene , lMutation in i[0].Mutations.items():
+          lMutation.classify()
 # ======================================================================================================
 
 
 # ======================================================================================================
 def AddWxsFileToCase( aCase , aFile ):  
+  if aCase.Mutations is None: aCase.Mutations = {}
   for line in utf8reader( gzip.GzipFile( fileobj = aFile ) ):                  # Iterate over each line in the file
     if line[0] == "#" or line.startswith( "Hugo_Symbol" ) : continue           # Ignore comments and headers
     line = [ i.strip() for i in line.split( "\t" , maxsplit = 37 ) ]           # Split the line at tabs up to where we need it      
@@ -127,6 +133,7 @@ def AddWxsFileToCase( aCase , aFile ):
 
 # ======================================================================================================
 def AddRnaSeqFileToCase( aCase , aFile ):
+  if aCase.StarCounts is None: aCase.StarCounts = []
   lStarCounts = StarCounts()
   
   for line in utf8reader( aFile ):
@@ -186,9 +193,9 @@ for j in tqdm.tqdm( lFileInfo , ncols=Ncol , desc="Collating available Data" ):
   else:                              lCase.RnaSeqFileIds.append( FileId )
 
 
-for lCaseId in tqdm.tqdm( list(lCases.keys()) , ncols=Ncol , desc="Filtering" ):
-  lCase = lCases[ lCaseId ]
-  if len( lCase.WxsFileIds ) == 0 or len( lCase.RnaSeqFileIds ) == 0:  del lCases[ lCaseId ]
+# for lCaseId in tqdm.tqdm( list(lCases.keys()) , ncols=Ncol , desc="Filtering" ):
+#   lCase = lCases[ lCaseId ]
+#   if len( lCase.WxsFileIds ) == 0 or len( lCase.RnaSeqFileIds ) == 0:  del lCases[ lCaseId ]
 
 
 lFileIds = {}

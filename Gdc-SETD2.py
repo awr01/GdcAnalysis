@@ -111,7 +111,7 @@ def DrawVolcanos( Data ):
 
 # ======================================================================================================
 def BoxPlot_ForEachClass( Class , Cases , index ):
-  Data = SeparateMutantionType( Cases , MutationOfInterest )
+  Data = SeparateMutationType( Cases , MutationOfInterest )
 
   TERT = StarCounts.GeneCatalogue[ "TERT" ].index
 
@@ -142,10 +142,13 @@ def DrawBoxPlot( Data ):
         if not K in D: D[K] = []
         D[K].extend( V )
 
-    ax1.set_ylim( 1e-2 , 1e3 )
+    ax1.set_ylim( 1e-4 , 1e3 )
+    ax1.text( 0.6 , 300 , "\n".join( sorted( Diseases.keys() ) ) )
 
-    keys = [ f"{k}\n[{len(v)}]" for k,v in sorted( D.items() ) ]
+    keys = [ f"{k} [{len(v)}]" for k,v in sorted( D.items() ) ]
     vals = [ v for k,v in sorted( D.items() ) ]
+
+    if len( keys ) == 0: continue
 
     box1 = ax1.boxplot( vals , tick_labels=keys , widths= 0.8 , whis=False , showfliers=False , showmeans=True , meanprops=dict(color="grey"), meanline=True, medianprops=dict(color="black") )    
 
@@ -155,10 +158,9 @@ def DrawBoxPlot( Data ):
       if i!=len(vals)-1 : 
         try:
           lStats = GdcStatistics( v , vals[-1] ) 
-          ax1.text( i+0.6 , 100 + (100*(i%2)) , f'$p_{{value}}={lStats.pvalue:.2e}$' )
+          ax1.text( i+0.6 , 100 , f'$p_{{value}}={lStats.pvalue:.2e}$' )
         except: pass
 
-    ax1.text( 0.6 , 300 , "\n".join( sorted( Diseases.keys() ) ) )
 
   #Add the common y-axis label
   plt.yscale( "log" )
@@ -208,7 +210,7 @@ def DrawScatterPlot( Data ):
     Data = [ [y[1] for y in Data[:x] ] , [y[1] for y in Data[x:] ] ]
 
     ax1.set_ylim( 1e-4 , 1e2 )
-    box1 = ax1.boxplot( Data , tick_labels=[ "Bottom 10%" , "Top 90%" ] , widths= 0.8 , whis=False , showfliers=False , showmeans=True , meanprops=dict(color="grey"), meanline=True, medianprops=dict(color="black") )    
+    box1 = ax1.boxplot( Data , tick_labels=[ f"Bottom 10% [{len(Data[0])}]" , f"Top 90% [{len(Data[1])}]" ] , widths= 0.8 , whis=False , showfliers=False , showmeans=True , meanprops=dict(color="grey"), meanline=True, medianprops=dict(color="black") )    
 
     for i,v in enumerate(Data): 
       ax1.scatter( np.random.normal( i+1 , 0.05 , len( v ) ) , v , color=[ "r" , "b" ][i] , alpha=0.5 , s=1 )

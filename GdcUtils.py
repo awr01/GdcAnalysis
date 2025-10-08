@@ -77,6 +77,7 @@ def GdcStatistics( aMut , aWT , aRatioCut = False , aPvalueCut = None ):
 def FlattenTpmUnstranded( Data , index ):
   lRet = []      
   for j in Data:
+    if j.StarCounts is None: continue
     for i in j.StarCounts: 
       lRet.append( i.TpmUnstranded[ index ] )
   return lRet
@@ -92,7 +93,10 @@ def SeparateMutantAndWildType( Cases , Mutation ):
     info = str( Case.DiseaseType )
     if not info in Diseases: Diseases[ info ] = { "Mut":0 , "WT":0 }
 
-    if Mutation in Case.Mutations: 
+    if Case.Mutations is None:
+      print( "No mutation data" )
+      continue
+    elif Mutation in Case.Mutations: 
       if Case.Mutations[ Mutation ].Classification == SilentOrSplice : continue
       lMut.append( Case ) 
       Diseases[ info ][ "Mut" ] += 1  
@@ -105,22 +109,31 @@ def SeparateMutantAndWildType( Cases , Mutation ):
 
 
 # ======================================================================================================
-def SeparateMutantionType( Cases , Mutation ):
+def SeparateMutationType( Cases , Mutation ):
   lRet = {}
 
   for Case in Cases:
 
     info = str( Case.DiseaseType )
-    if not info in lRet: lRet[ info ] = {}
+    if not info in lRet: lRet[ info ] = { "WildType":[] , "Missense":[] , "Nonsense":[] , "Other":[] }
 
-    if Mutation in Case.Mutations:
+    if Case.Mutations is None:
+      print( "No mutation data" )
+      continue
+    elif Mutation in Case.Mutations:
       Mutations = set( x[0] for x in Case.Mutations[ Mutation ].Raw )
     else:
       Mutations = { "WildType" }
 
     for M in Mutations:
-      if M in lRet[ info ]: lRet[ info ][ M ].append( Case )
-      else:                 lRet[ info ][ M ] = [ Case ]
+
+      if   M == "WildType" : pass
+      elif M == "Missense_Mutation" : M = "Missense"
+      elif M in [ "Frame_Shift_Del","Frame_Shift_Ins","Nonsense_Mutation" ] : M = "Nonsense"
+      else: M = "Other"
+
+
+      lRet[ info ][ M ].append( Case )
 
   return lRet
 # ======================================================================================================
